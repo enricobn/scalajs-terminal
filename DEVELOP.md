@@ -8,3 +8,7 @@ PRODUCTION
 ==========
 to build an optimized javascript to use in production run 'sbt fullOptJS'
 then open demo.html
+
+INSTALL LOCALLY
+===============
+you can run 'sbt publish-local' to install this library to local repository

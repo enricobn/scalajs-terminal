@@ -1,4 +1,4 @@
-package org.textscreen
+package org.enricobn.terminal
 
 import org.scalajs.dom
 

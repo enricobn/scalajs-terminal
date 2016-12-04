@@ -3,11 +3,12 @@ import sbt.Keys._
 
 val ver = "1.0.0"
 
-val artifactPrefix = "target/scala-2.11/textscreen-" + ver
+val artifactPrefix = "target/scala-2.11/scalajs-terminal-" + ver
 
 lazy val root = (project in file("."))
   .settings(
     scalaVersion := "2.11.8",
+    organization := "org.enricobn",
     name := "scalajs-terminal",
     version := ver,
     artifactPath in (Compile, fullOptJS) := baseDirectory.value / (artifactPrefix + ".min.js"),

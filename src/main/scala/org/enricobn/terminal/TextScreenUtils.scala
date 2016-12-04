@@ -1,4 +1,4 @@
-package org.textscreen
+package org.enricobn.terminal
 
 /**
   * Created by enrico on 11/29/16.

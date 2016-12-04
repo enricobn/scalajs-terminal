@@ -1,4 +1,4 @@
-package org.textscreen
+package org.enricobn.terminal
 
 import scala.collection.mutable.ArrayBuffer
 import scala.scalajs.js.annotation.{JSExport, JSExportAll}
