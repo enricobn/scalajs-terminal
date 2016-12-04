@@ -401,7 +401,11 @@ class Terminal(val screen: TextScreenCanvas) extends JSLog {
         }
       }
     }
-    this.screen.flush()
+    screen.flush()
+  }
+
+  def flush() {
+    screen.update()
   }
 
 }
