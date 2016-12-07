@@ -9,10 +9,11 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
 
 /**
   * Created by enrico on 11/29/16.
+  * @param canvasId the id of the HTML canvas
   */
 @JSExportAll
-@JSExport(name = "TextScreenCanvas")
-class TextScreenCanvas(val canvasId: String) extends JSLog {
+@JSExport(name = "CanvasTextScreen")
+class CanvasTextScreen(val canvasId: String) extends JSLog {
   private var cell_attributes: scala.Option[CellAttributes] = None
   private var selection: scala.Option[Selection] = None
   private var updated = true

@@ -1,5 +1,6 @@
 package org.enricobn.terminal
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.scalajs.js.annotation.{JSExport, JSExportAll}
 
@@ -8,12 +9,39 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
   */
 @JSExport(name = "Terminal")
 @JSExportAll
-class Terminal(val screen: TextScreenCanvas) extends JSLog {
-  var state = 0
-  var current = ""
-  var csi_parameters = new ArrayBuffer[String]()
-  var app_mode = false
-  var icrnl = false
+class Terminal(val screen: CanvasTextScreen, inputHandler: CanvasInputHandler) extends JSLog {
+  private val inputPub = new StringPub
+  private var state = 0
+  private var current = ""
+  private var csi_parameters = new ArrayBuffer[String]()
+  private var app_mode = false
+  private var icrnl = false
+
+  inputHandler.onKeyDown(new KeyDownPub#Sub() {
+    override def notify(pub: mutable.Publisher[Int], event: Int) {
+      if (event == 13) {
+        inputPub.publish("\n")
+      }
+    }
+  })
+
+  inputHandler.onKeyPress(new KeyPressPub#Sub() {
+    override def notify(pub: mutable.Publisher[Char], event: Char) {
+      inputPub.publish(event.toString)
+    }
+  })
+
+  def onInput(subscriber: StringPub#Sub) {
+    inputPub.subscribe(subscriber)
+  }
+
+  def removeOnInput(subscriber: StringPub#Sub) {
+    inputPub.removeSubscription(subscriber)
+  }
+
+  def removeOnInput() {
+    inputPub.removeSubscriptions()
+  }
 
   // add string to cursor position
   def add(text: String) {
@@ -391,7 +419,7 @@ class Terminal(val screen: TextScreenCanvas) extends JSLog {
           //                }
           log("char:CR", Levels.INFO)
         } else if (c == '\t') {
-          this.screen.tab();
+          this.screen.tab()
           log("char:TAB", Levels.INFO)
         } else if (code < 32) {
           log("unknown char, code:" + code, Levels.INFO)
