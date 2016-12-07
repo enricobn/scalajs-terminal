@@ -9,13 +9,18 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
   */
 @JSExport(name = "Terminal")
 @JSExportAll
-class Terminal(val screen: CanvasTextScreen, inputHandler: CanvasInputHandler) extends JSLog {
+class Terminal(val screen: CanvasTextScreen, inputHandler: CanvasInputHandler, soundResource: String = null) extends JSLog {
   private val inputPub = new StringPub
   private var state = 0
   private var current = ""
   private var csi_parameters = new ArrayBuffer[String]()
   private var app_mode = false
   private var icrnl = false
+  private val soundEffect: Option[SoundEffect] =
+    if (soundResource == null)
+      None
+    else
+      Some(new SoundEffect(soundResource))
 
   inputHandler.onKeyDown(new KeyDownPub#Sub() {
     override def notify(pub: mutable.Publisher[Int], event: Int) {
@@ -27,6 +32,9 @@ class Terminal(val screen: CanvasTextScreen, inputHandler: CanvasInputHandler) e
 
   inputHandler.onKeyPress(new KeyPressPub#Sub() {
     override def notify(pub: mutable.Publisher[Char], event: Char) {
+      if (soundEffect.isDefined) {
+        soundEffect.get.play()
+      }
       inputPub.publish(event.toString)
     }
   })
