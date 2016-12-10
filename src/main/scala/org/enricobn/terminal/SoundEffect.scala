@@ -25,9 +25,6 @@ class SoundEffect(resourcePath: String) {
   request.send()
 
   private def onLoad(e: Event): Unit = {
-    // val source = audioContext.createBufferSource()
-    // source.buffer = audioContext.createBuffer(request.response, false);
-    println(s"Response = ${request.response}")
     val audioData = request.response.asInstanceOf[ArrayBuffer]  // ja?!
 
     def gotBuffer(buffer: AudioBuffer): Unit = {
