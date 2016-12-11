@@ -128,17 +128,17 @@ class CanvasTextScreen(val canvasId: String) extends JSLog {
     //log('selection={from:' + this.selection.from.x + ',' + this.selection.from.y + ',to:' + this.selection.to.x + ',' + this.selection.to.y, WARN);
 
     optionalSelection match {
-      case Some(selection) =>
+      case Some(newSelection) =>
         var selected_text = ""
-        for (y <- selection.from.y to selection.to.y) {
+        for (y <- newSelection.from.y to newSelection.to.y) {
           if (y >= 0 && y < height) {
             var from_x = 0
             var to_x = width - 1
-            if (y == selection.from.y) {
-              from_x = selection.from.x
+            if (y == newSelection.from.y) {
+              from_x = newSelection.from.x
             }
-            if (y == selection.to.y) {
-              to_x = selection.to.x
+            if (y == newSelection.to.y) {
+              to_x = newSelection.to.x
             }
             if (selected_text.length > 0) {
               selected_text += '\n'
@@ -725,7 +725,7 @@ class CanvasTextScreen(val canvasId: String) extends JSLog {
     if (!cursor_visible) {
       flush()
       if (cursor.x <= width) {
-        updated = false;
+        updated = false
       }
       cursor_visible = true
     }
