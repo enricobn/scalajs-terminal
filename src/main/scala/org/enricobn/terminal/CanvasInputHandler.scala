@@ -21,9 +21,10 @@ class CanvasInputHandler(val canvasId: String) {
    */
   canvas.onkeydown = { (e: dom.KeyboardEvent) =>
     e.stopPropagation()
-    if (e.keyCode == 13) {
+    val event = KeyDownEvent(e.keyCode, ctrlKey = e.ctrlKey, shiftKey = e.shiftKey)
+    keyDownPub.publish(event)
+    if (event.preventDefault) {
       e.preventDefault()
-      keyDownPub.publish(e.keyCode)
     }
   }
 

@@ -7,9 +7,16 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
 /**
   * Created by enrico on 11/30/16.
   */
+
+object Terminal {
+  def fromCharCode(code: Int) = code.toChar.toString
+  val ESC = fromCharCode(27)
+}
 @JSExport(name = "Terminal")
 @JSExportAll
 class Terminal(val screen: CanvasTextScreen, inputHandler: CanvasInputHandler, soundResource: String = null) extends JSLog {
+  import Terminal._
+
   private val inputPub = new StringPub
   private var state = 0
   private var current = ""
@@ -23,10 +30,117 @@ class Terminal(val screen: CanvasTextScreen, inputHandler: CanvasInputHandler, s
       Some(new SoundEffect(soundResource))
 
   inputHandler.onKeyDown(new KeyDownPub#Sub() {
-    override def notify(pub: mutable.Publisher[Int], event: Int) {
-      if (event == 13) {
-        inputPub.publish("\n")
+    override def notify(pub: mutable.Publisher[KeyDownEvent], event: KeyDownEvent) {
+      val keyCode = event.keyCode
+      val ctrlKey = event.ctrlKey
+      if (keyCode == 9    // tab
+        || keyCode == 27  // ESC
+        || keyCode == 8   // backspace
+      ) {
+        inputPub.publish(fromCharCode(keyCode))
+        event.preventDefault = true
+        // UP
+      } else if (keyCode == 38) {
+        if (app_mode) {
+          inputPub.publish(ESC + "OA")
+        } else {
+          inputPub.publish(ESC + "[A")
+        }
+        event.preventDefault = true
+        // DOWN
+      } else if (keyCode == 40) {
+        if (app_mode) {
+          inputPub.publish(ESC + "OB")
+        } else {
+          inputPub.publish(ESC + "[B")
+        }
+        event.preventDefault = true
+        // LEFT
+      } else if (keyCode == 37) {
+        if (ctrlKey) {
+          inputPub.publish(ESC + "[1;5D")
+        } else {
+          if (app_mode) {
+            inputPub.publish(ESC + "OD")
+          } else {
+            inputPub.publish(ESC + "[D")
+          }
+        }
+        event.preventDefault = true
+        // RIGHT
+      } else if (keyCode == 39) {
+        if (ctrlKey) {
+          inputPub.publish(ESC + "[1;5C")
+        } else {
+          if (app_mode) {
+            inputPub.publish(ESC + "OC")
+          } else {
+            inputPub.publish(ESC  + "[C")
+          }
+        }
+        event.preventDefault = true
+        // HOME
+      } else if (keyCode == 36) {
+        if (app_mode) {
+          inputPub.publish(ESC + "OH")
+        } else {
+          inputPub.publish(ESC + "[H")
+        }
+        event.preventDefault = true
+        // END
+      } else if (keyCode == 35) {
+        if (app_mode) {
+          inputPub.publish(ESC + "OF")
+        } else {
+          inputPub.publish(ESC + "[F")
+        }
+        event.preventDefault = true
+        // Page up
+      } else if (keyCode == 33) {
+        if (event.shiftKey) {
+          scroll_back_page_up()
+        } else {
+          inputPub.publish(ESC + "[5~")
+        }
+        event.preventDefault = true
+        // Page down
+      } else if (keyCode == 34) {
+        if (event.shiftKey) {
+          scroll_back_page_down()
+        } else {
+          inputPub.publish(ESC + "[6~")
+        }
+        event.preventDefault = true
+        // Canc
+      } else if (keyCode == 46) {
+        inputPub.publish(ESC + "[3~")
+        event.preventDefault = true
+      } else if (keyCode == 13) {
+        //            if (ter.icrnl) {
+        //                inputPub.publish(fromCharCode(10));
+        //            } else {
+        inputPub.publish(fromCharCode(13))
+        //            }
+        event.preventDefault = true
+        // Ctrl-c Ctrl-C
+      } else if (event.ctrlKey && (keyCode == 67 || keyCode == 99)) {
+        inputPub.publish(fromCharCode(3))
+        event.preventDefault = true
+        // Ctrl-d Ctrl-D
+      } else if (event.ctrlKey && (keyCode == 68 || keyCode == 100)) {
+        inputPub.publish(fromCharCode(4))
+        event.preventDefault = true
+      } else if (is_log(Levels.DEBUG)) {
+        log("keydown:" + keyCode, Levels.DEBUG)
       }
+//
+//
+//
+//
+//      } else if (keyCode == 13) {
+//        inputPub.publish("\n")
+//        event.preventDefault = true
+//      }
     }
   })
 
@@ -51,6 +165,14 @@ class Terminal(val screen: CanvasTextScreen, inputHandler: CanvasInputHandler, s
     inputPub.removeSubscriptions()
   }
 
+  def scroll_back_page_up() {
+    screen.scroll_back_page_up()
+  }
+
+  def scroll_back_page_down() {
+    screen.scroll_back_page_down()
+  }
+
   // add string to cursor position
   def add(text: String) {
     /*    if (text.substr(0,3) == '&c:') {
@@ -69,7 +191,7 @@ class Terminal(val screen: CanvasTextScreen, inputHandler: CanvasInputHandler, s
     }
 
     for (i <- 0 until text.length) {
-      var c = text.charAt(i)
+      val c = text.charAt(i)
       val code = text.charAt(i)
       // ESCAPE
       if (state == 1) {
@@ -102,288 +224,286 @@ class Terminal(val screen: CanvasTextScreen, inputHandler: CanvasInputHandler, s
           state = 0
         }
         // CSI
-/*
       } else if (this.state == 2) {
         if (c == '?') {
-          this.csi_parameters.push('?');
+          csi_parameters += "?"
         } else if (c == ';') {
-          this.csi_parameters.push(this.current);
-          this.current = '';
+          csi_parameters += current
+          current = ""
         } else if (c >= '0' && c <= '9') {
-          this.current += c;
+          current += c
         } else {
-          if (this.current != '') {
-            this.csi_parameters.push(this.current);
+          if (current.nonEmpty) {
+            csi_parameters += current
           }
           if (c == 'J') {
-            var par;
-            if (this.csi_parameters && this.csi_parameters.length > 0) {
-              par = this.csi_parameters[0];
-            } else {
-              par = '0';
-            }
-            if (par == '0') {
-              log('unhandled CSI 0J', WARN);
-            } else if (par == '1') {
-              log('unhandled CSI 1J', WARN);
-            } else if (par == '2') {
-              this.screen.clear(false);
-              log('CSI 2J', INFO);
-            } else if (par == '3') {
-              log('unhandled CSI 3J', WARN);
+            val par =
+              if (csi_parameters.nonEmpty) {
+                csi_parameters(0)
+              } else {
+                "0"
+              }
+            if (par == "0") {
+              log("unhandled CSI 0J", Levels.WARN)
+            } else if (par == "1") {
+              log("unhandled CSI 1J", Levels.WARN)
+            } else if (par == "2") {
+              screen.clear(false)
+              log("CSI 2J", Levels.INFO)
+            } else if (par == "3") {
+              log("unhandled CSI 3J", Levels.WARN)
             }
           } else if (c == 'H') {
-            var cursor_x = 0;
-            var cursor_y = 0;
-            if (this.csi_parameters && this.csi_parameters.length > 1) {
-              cursor_y = parseInt(this.csi_parameters[0]) -1;
-              cursor_x = parseInt(this.csi_parameters[1]) -1;
+            var cursor_x = 0
+            var cursor_y = 0
+            if (csi_parameters.length > 1) {
+              cursor_y = csi_parameters(0).toInt -1
+              cursor_x = csi_parameters(1).toInt -1
             }
-            this.screen.set_cursor(cursor_x, cursor_y);
-            log('CSI ' + cursor_y + ';' + cursor_x + 'H', INFO);
+            screen.set_cursor(cursor_x, cursor_y)
+            log("CSI " + cursor_y + ";" + cursor_x + "H", Levels.INFO)
           } else if (c == 'K') {
-            var par;
-            if (this.csi_parameters && this.csi_parameters.length > 0) {
-              par = this.csi_parameters[0];
+            val par =
+              if (csi_parameters.nonEmpty) {
+                csi_parameters(0)
+              } else {
+                "0"
+              }
+            if (par == "0") {
+              screen.erase_line_from_cursor()
+              screen.set_cursor(screen.cursor.x, screen.cursor.y)
+              log("CSI " + par + "K", Levels.INFO)
             } else {
-              par = '0';
-            }
-            if (par == '0') {
-              this.screen.erase_line_from_cursor();
-              this.screen.set_cursor(this.screen.cursor.x, this.screen.cursor.y);
-              log('CSI ' + par + 'K', INFO);
-            } else {
-              log('unhandled CSI ' + par + 'K', WARN);
+              log("unhandled CSI " + par + "K", Levels.WARN)
             }
           } else if (c == 'C') {
-            var par;
-            if (this.csi_parameters && this.csi_parameters.length > 0) {
-              par = this.csi_parameters[0];
-            } else {
-              par = '1';
-            }
+            val par =
+              if (csi_parameters.nonEmpty) {
+                csi_parameters(0)
+              } else {
+                "1"
+              }
             // TODO I don't like it, but the cursor position can be different after flush
-            this.screen.flush();
-            this.screen.set_cursor(this.screen.cursor.x + parseInt(par), this.screen.cursor.y);
-            log('CSI ' + par + 'C', INFO);
+            screen.flush()
+            screen.set_cursor(screen.cursor.x + par.toInt, screen.cursor.y)
+            log("CSI " + par + "C", Levels.INFO)
             // Cursor Backward
           } else if (c == 'D') {
-            var par;
-            if (this.csi_parameters && this.csi_parameters.length > 0) {
-              par = this.csi_parameters[0];
-            } else {
-              par = '1';
-            }
+            val par =
+              if (csi_parameters.nonEmpty) {
+                csi_parameters(0)
+              } else {
+                "1"
+              }
             // TODO I don't like it, but the cursor position can be different after flush
-            this.screen.flush();
-            this.screen.set_cursor(this.screen.cursor.x - parseInt(par), this.screen.cursor.y);
-            log('CSI ' + par + 'D', INFO);
+            screen.flush()
+            screen.set_cursor(screen.cursor.x - par.toInt, screen.cursor.y)
+            log("CSI " + par + "D", Levels.INFO)
             // goto column
           } else if (c == 'G') {
-            var par;
-            if (this.csi_parameters && this.csi_parameters.length > 0) {
-              par = this.csi_parameters[0];
-            } else {
-              par = '1';
-            }
+            val par =
+              if (csi_parameters.nonEmpty) {
+                csi_parameters(0)
+              } else {
+                "1"
+              }
             // TODO I don't like it, but the cursor position can be different after flush
-            this.screen.flush();
-            this.screen.set_cursor(this.screen.cursor.x, parseInt(par) -1);
-            log('CSI ' + par + 'G', INFO);
-          } else if (c == 'h' && this.csi_parameters && this.csi_parameters.length > 0) {
-            if (this.csi_parameters[0] == '?' && this.csi_parameters.length == 2) {
-              if (this.csi_parameters[1] == '1') {
-                this.app_mode = true;
-                log('CSI ?1h', INFO);
-              } else if (this.csi_parameters[1] == '7') {
-                this.screen.wrap_around = true;
-                log('CSI ?7h', INFO);
-              } else if (this.csi_parameters[1] == '25') {
-                this.screen.show_cursor();
-                log('CSI ?25h', INFO);
+            screen.flush()
+            screen.set_cursor(screen.cursor.x, par.toInt -1)
+            log("CSI " + par + "G", Levels.INFO)
+          } else if (c == 'h' && csi_parameters.nonEmpty) {
+            if (csi_parameters(0) == "?" && csi_parameters.length == 2) {
+              if (csi_parameters(1) == "1") {
+                app_mode = true
+                log("CSI ?1h", Levels.INFO)
+              } else if (csi_parameters(1) == "7") {
+                screen.wrap_around = true
+                log("CSI ?7h", Levels.INFO)
+              } else if (csi_parameters(1) == "25") {
+                screen.show_cursor()
+                log("CSI ?25h", Levels.INFO)
               } else {
-                if (is_log(WARN)) {
-                  log('unhandled CSI ' + string_array_to_string(this.csi_parameters) + 'h', WARN);
+                if (is_log(Levels.WARN)) {
+                  log("unhandled CSI " + csi_parameters + "h", Levels.WARN)
                 }
               }
             } else {
-              if (is_log(WARN)) {
-                log('unhandled CSI ' + string_array_to_string(this.csi_parameters)+ 'h', WARN);
+              if (is_log(Levels.WARN)) {
+                log("unhandled CSI " + csi_parameters + "h", Levels.WARN)
               }
             }
-          } else if (c == 'l' && this.csi_parameters && this.csi_parameters.length > 0) {
-            if (this.csi_parameters[0] == '?' && this.csi_parameters.length == 2) {
-              if (this.csi_parameters[1] == '1') {
-                this.app_mode = false;
-                log('CSI ?1l', INFO);
-              } else if (this.csi_parameters[1] == '7') {
-                this.screen.wrap_around = false;
-                log('CSI ?7l', INFO);
-              } else if (this.csi_parameters[1] == '25') {
-                this.screen.hide_cursor();
-                log('CSI ?25l', INFO);
+          } else if (c == 'l' && csi_parameters.nonEmpty) {
+            if (csi_parameters(0) == "?" && csi_parameters.length == 2) {
+              if (csi_parameters(1) == "1") {
+                app_mode = false
+                log("CSI ?1l", Levels.INFO)
+              } else if (csi_parameters(1) == "7") {
+                screen.wrap_around = false
+                log("CSI ?7l", Levels.INFO)
+              } else if (csi_parameters(1) == "25") {
+                screen.hide_cursor()
+                log("CSI ?25l", Levels.INFO)
               } else {
-                if (is_log(WARN)) {
-                  log('unhandled CSI ' + string_array_to_string(this.csi_parameters)+ 'l', WARN);
+                if (is_log(Levels.WARN)) {
+                  log("unhandled CSI " + csi_parameters + "l", Levels.WARN)
                 }
               }
             } else {
-              if (is_log(WARN)) {
-                log('unhandled CSI ' + string_array_to_string(this.csi_parameters) + 'l', WARN);
+              if (is_log(Levels.WARN)) {
+                log("unhandled CSI " + csi_parameters + "l", Levels.WARN)
               }
             }
           } else if (c == 'P') {
-            var par;
-            if (this.csi_parameters && this.csi_parameters.length > 0) {
-              par = this.csi_parameters[0];
-            } else {
-              par = '1';
-            }
-            this.screen.delete_chars(parseInt(par));
-            log('CSI ' + par + 'P', INFO);
+            val par =
+              if (csi_parameters.nonEmpty) {
+                csi_parameters(0)
+              } else {
+                "1"
+              }
+            screen.delete_chars(par.toInt)
+            log("CSI " + par + "P", Levels.INFO)
           } else if (c == 'A') {
-            var par;
-            if (this.csi_parameters && this.csi_parameters.length > 0) {
-              par = this.csi_parameters[0];
-            } else {
-              par = '1';
-            }
-            this.screen.up(parseInt(par));
-            log('CSI ' + par + 'A', INFO);
+            val par =
+              if (csi_parameters.nonEmpty) {
+                csi_parameters(0)
+              } else {
+                "1"
+              }
+            screen.up(par.toInt, false)
+            log("CSI " + par + "A", Levels.INFO)
           } else if (c == 'r') {
-            var par;
-            if (this.csi_parameters && this.csi_parameters.length > 0) {
-              par = this.csi_parameters[0];
+            val par =
+            if (csi_parameters.nonEmpty) {
+              csi_parameters(0)
             } else {
-              par = '1';
+              "1"
             }
             // Restore DEC Private Mode Values. The value of P s previously saved is restored. P s values are the same as for DECSET.
-            if (par == '?') {
-              if (is_log(WARN)) {
-                log('unhandled CSI ' + string_array_to_string(this.csi_parameters) + c, WARN);
+            if (par == "?") {
+              if (is_log(Levels.WARN)) {
+                log("unhandled CSI " + csi_parameters + c, Levels.WARN)
               }
               // scroll region
             } else {
-              if (!this.csi_parameters || this.csi_parameters.length == 0) {
-                this.screen.scroll_region = {first:0, last:this.screen.height -1};
+              if (csi_parameters.isEmpty) {
+                screen.scroll_region = new ScrollRegion(0, screen.height -1)
               } else {
-                this.screen.scroll_region = {first:parseInt(this.csi_parameters[0]) -1,
-                  last:parseInt(this. csi_parameters[1]) -1};
+                screen.scroll_region = new ScrollRegion(csi_parameters(0).toInt -1,
+                  csi_parameters(1).toInt -1)
               }
-              if (is_log(INFO)) {
-                log('CSI ' + string_array_to_string(this.csi_parameters) + c, INFO);
+              if (is_log(Levels.INFO)) {
+                log("CSI " + csi_parameters + c, Levels.INFO)
               }
             }
           } else if (c == 'm') {
-            if (this.csi_parameters.length > 0) {
-              var ic;
-              for (ic = 0; ic < this.csi_parameters.length; ic++) {
-                var par = this.csi_parameters[ic];
-                if (par == '0') {
-                  this.screen.set_default_attributes();
-                } else if (par == '1' || par == '01') {
-                  this.screen.set_bold();
-                } else if (par == '22') {
-                  this.screen.set_normal();
-                } else if (par == '30') {
-                  this.screen.set_fg_color('blue'); // BLACK TODO restore when handled bg
-                } else if (par == '31') {
-                  this.screen.set_fg_color('red');
-                } else if (par == '32') {
-                  this.screen.set_fg_color('green');
-                } else if (par == '33') {
-                  this.screen.set_fg_color('yellow');
-                } else if (par == '34') {
-                  this.screen.set_fg_color('cyan'); // BLUE
-                } else if (par == '35') {
-                  this.screen.set_fg_color('magenta');
-                } else if (par == '36') {
-                  this.screen.set_fg_color('cyan');
-                } else if (par == '37') {
-                  this.screen.set_fg_color('white');
-                } else if (par == '39') {
-                  this.screen.set_default_fg_color();
-                } else if (par == '40') {
-                  this.screen.set_bg_color('blue'); // BLACK TODO restore when handled bg
-                } else if (par == '41') {
-                  this.screen.set_bg_color('red');
-                } else if (par == '42') {
-                  this.screen.set_bg_color('green');
-                } else if (par == '43') {
-                  this.screen.set_bg_color('yellow');
-                } else if (par == '44') {
-                  this.screen.set_bg_color('cyan'); // BLUE
-                } else if (par == '45') {
-                  this.screen.set_bg_color('magenta');
-                } else if (par == '46') {
-                  this.screen.set_bg_color('cyan');
-                } else if (par == '47') {
-                  this.screen.set_bg_color('white');
-                } else if (par == '49') {
-                  this.screen.set_default_bg_color();
+            if (csi_parameters.nonEmpty) {
+              for (par <- csi_parameters) {
+                if (par == "0") {
+                  screen.set_default_attributes()
+                } else if (par == "1" || par == "01") {
+                  screen.set_bold()
+                } else if (par == "22") {
+                  screen.set_normal()
+                } else if (par == "30") {
+                  screen.set_fg_color("blue") // BLACK TODO restore when handled bg
+                } else if (par == "31") {
+                  screen.set_fg_color("red")
+                } else if (par == "32") {
+                  screen.set_fg_color("green")
+                } else if (par == "33") {
+                  screen.set_fg_color("yellow")
+                } else if (par == "34") {
+                  screen.set_fg_color("cyan") // BLUE
+                } else if (par == "35") {
+                  screen.set_fg_color("magenta")
+                } else if (par == "36") {
+                  screen.set_fg_color("cyan")
+                } else if (par == "37") {
+                  screen.set_fg_color("white")
+                } else if (par == "39") {
+                  screen.set_default_fg_color()
+                } else if (par == "40") {
+                  screen.set_bg_color("blue") // BLACK TODO restore when handled bg
+                } else if (par == "41") {
+                  screen.set_bg_color("red")
+                } else if (par == "42") {
+                  screen.set_bg_color("green")
+                } else if (par == "43") {
+                  screen.set_bg_color("yellow")
+                } else if (par == "44") {
+                  screen.set_bg_color("cyan") // BLUE
+                } else if (par == "45") {
+                  screen.set_bg_color("magenta")
+                } else if (par == "46") {
+                  screen.set_bg_color("cyan")
+                } else if (par == "47") {
+                  screen.set_bg_color("white")
+                } else if (par == "49") {
+                  screen.set_default_bg_color()
                 } else {
-                  log('unhandled CSI: ' + par + c, WARN);
+                  log("unhandled CSI: " + par + c, Levels.WARN)
                 }
               }
             } else {
-              this.screen.set_default_attributes();
+              this.screen.set_default_attributes()
             }
             // insert lines
           } else if (c == 'L') {
-            var par;
-            if (this.csi_parameters && this.csi_parameters.length > 0) {
-              par = this.csi_parameters[0];
-            } else {
-              par = '1';
-            }
-            this.screen.insert_lines(parseInt(par));
-            log('CSI ' + par + 'L', INFO);
+            val par =
+              if (csi_parameters.nonEmpty) {
+                csi_parameters(0)
+              } else {
+                "1"
+              }
+            screen.insert_lines(par.toInt)
+            log("CSI " + par + "L", Levels.INFO)
             // delete lines
           } else if (c == 'M') {
-            var par;
-            if (this.csi_parameters && this.csi_parameters.length > 0) {
-              par = this.csi_parameters[0];
-            } else {
-              par = '1';
-            }
-            this.screen.delete_lines(parseInt(par));
-            log('CSI ' + par + 'M', INFO);
+            val par =
+              if (csi_parameters.nonEmpty) {
+                csi_parameters(0)
+              } else {
+                "1"
+              }
+            screen.delete_lines(par.toInt)
+            log("CSI " + par + "M", Levels.INFO)
             // insert chars
           } else if (c == '@') {
-            var par;
-            if (this.csi_parameters && this.csi_parameters.length > 0) {
-              par = this.csi_parameters[0];
-            } else {
-              par = '1';
-            }
-            this.screen.insert_chars(parseInt(par));
-            log('CSI ' + par + '@', INFO);
+            val par =
+              if (csi_parameters.nonEmpty) {
+                csi_parameters(0)
+              } else {
+                "1"
+              }
+            screen.insert_chars(par.toInt)
+            log("CSI " + par + "@", Levels.INFO)
           } else {
-            if (is_log(WARN)) {
-              log('unhandled CSI: ' + string_array_to_string(this.csi_parameters) + c, WARN);
+            if (is_log(Levels.WARN)) {
+              log("unhandled CSI: " + csi_parameters + c, Levels.WARN)
             }
           }
-          this.current = '';
-          this.csi_parameters = new Array();
-          this.state = 0;
+          current = ""
+          csi_parameters.clear()
+          state = 0
         }
         // operating system command
       } else if (this.state == 7) {
         if (c == '\\' || code == 7) {
           // title
-          if (this.current.length > 2 && this.current.substr(0, 2) == '0;') {
+          if (current.length > 2 && current.substring(0, 2) == "0;") {
 
           } else {
-            log('unhandled OS command:"' + this.current + '"');
+            log("unhandled OS command:'" + current + "'", Levels.ERROR)
           }
-          this.current = '';
-          this.state = 0;
+          current = ""
+          state = 0
         } else {
-          this.current += c;
+          current += c
         }
         // application command
-      } else if (this.state == 8) {
+      } else if (state == 8) {
         if (c == '\\' || code == 7) {
+          /*
           try {
             var command = JSON.parse(this.current.substr(0, this.current.length-1));
             if (command.op == 'download') {
@@ -397,10 +517,11 @@ class Terminal(val screen: CanvasTextScreen, inputHandler: CanvasInputHandler, s
           }
           this.current = '';
           this.state = 0;
+          */
+          log("unhandled APP command:'" + current + "'", Levels.ERROR)
         } else {
-          this.current += c;
+          current += c
         }
-*/
       } else if (state > 2) {
         // I don't handle them for now
         state = 0

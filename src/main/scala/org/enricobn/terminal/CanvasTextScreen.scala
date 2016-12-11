@@ -29,12 +29,12 @@ class CanvasTextScreen(val canvasId: String) extends JSLog {
   // I must apply attributes (font basically) to calculate font size
   default_cell_attributes.apply(ctx, font_base)
 
-  private val wrap_around = false
+  var wrap_around = false
   private val cell_width = ctx.measureText("M").width
   private val cell_height = getFontHeight("Courier New", "16px", "Mg")
 
-  private val width: Int = 120
-  private val height: Int = 40
+  val width: Int = 120
+  val height: Int = 40
 
   private val cells_attributes = new ArrayBuffer[ArrayBuffer[scala.Option[CellAttributes]]]()
 
@@ -60,7 +60,7 @@ class CanvasTextScreen(val canvasId: String) extends JSLog {
   // for cursor
   ctx.strokeStyle = default_cell_attributes.fg_color
 
-  private var scroll_region = new ScrollRegion(0, height - 1)
+  var scroll_region = new ScrollRegion(0, height - 1)
 
   // TODO accesor method
   val cursor = new Coords(0, 0)

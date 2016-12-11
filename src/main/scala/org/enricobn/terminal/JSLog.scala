@@ -13,9 +13,7 @@ trait JSLog {
   // TODO where can I put it?
   val log_level = Levels.WARN
 
-  def is_log(level: Levels.Value) {
-    log_level >= level
-  }
+  def is_log(level: Levels.Value) = log_level >= level
 
   def log(text: String, level: Levels.Value) {
     if (log_level >= level) {
