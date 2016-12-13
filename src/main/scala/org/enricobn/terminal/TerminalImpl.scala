@@ -161,7 +161,7 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
     inputPub.removeSubscription(subscriber)
   }
 
-  override def removeOnInput() {
+  override def removeOnInputs() {
     inputPub.removeSubscriptions()
   }
 

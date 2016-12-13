@@ -9,7 +9,7 @@ trait Terminal {
 
   def removeOnInput(subscriber: _root_.org.enricobn.terminal.StringPub#Sub)
 
-  def removeOnInput()
+  def removeOnInputs()
 
   def scroll_back_page_up()
 
