@@ -33,17 +33,14 @@ class CanvasTextScreen(val canvasId: String) extends JSLog {
   private val cell_width = ctx.measureText("M").width
   private val cell_height = getFontHeight("Courier New", "16px", "Mg")
 
-  val width: Int = 120
-  val height: Int = 40
+  val width: Int = (canvas.width / cell_width).toInt
+  val height: Int = canvas.height / cell_height.height
 
   private val cells_attributes = new ArrayBuffer[ArrayBuffer[scala.Option[CellAttributes]]]()
 
   initCellAttributes()
 
   private val empty_row = " " * width
-
-  canvas.width = (cell_width * width).toInt
-  canvas.height = cell_height.height * height
 
   ctx.fillStyle = default_cell_attributes.fg_color
 
