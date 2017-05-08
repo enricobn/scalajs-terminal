@@ -14,7 +14,7 @@ object TerminalImpl {
 }
 @JSExport(name = "Terminal")
 @JSExportAll
-class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandler, soundResource: String = null) extends JSLog with Terminal {
+class TerminalImpl(val screen: CanvasTextScreen, val inputHandler: CanvasInputHandler, val logger: JSLogger, val soundResource: String = null) extends Terminal {
   import TerminalImpl._
 
   private val inputPub = new StringPub
@@ -130,8 +130,8 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
       } else if (event.ctrlKey && (keyCode == 68 || keyCode == 100)) {
         inputPub.publish(fromCharCode(4))
         event.preventDefault = true
-      } else if (is_log(Levels.DEBUG)) {
-        log("keydown:" + keyCode, Levels.DEBUG)
+      } else if (logger.isLoggable(LogLevel.DEBUG)) {
+        logger.log("keydown:" + keyCode, LogLevel.DEBUG)
       }
       //
       //
@@ -219,7 +219,7 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
             // TODO false is for compatibility with wshell, but I don't know if I must take care of the back buffer
             screen.up(1, false)
           } else {
-            log("unhandled escape: " + c, Levels.WARN)
+            logger.log("unhandled escape: " + c, LogLevel.WARN)
           }
           state = 0
         }
@@ -244,14 +244,14 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
                 "0"
               }
             if (par == "0") {
-              log("unhandled CSI 0J", Levels.WARN)
+              logger.log("unhandled CSI 0J", LogLevel.WARN)
             } else if (par == "1") {
-              log("unhandled CSI 1J", Levels.WARN)
+              logger.log("unhandled CSI 1J", LogLevel.WARN)
             } else if (par == "2") {
               screen.clear(false)
-              log("CSI 2J", Levels.INFO)
+              logger.log("CSI 2J", LogLevel.INFO)
             } else if (par == "3") {
-              log("unhandled CSI 3J", Levels.WARN)
+              logger.log("unhandled CSI 3J", LogLevel.WARN)
             }
           } else if (c == 'H') {
             var cursor_x = 0
@@ -261,7 +261,7 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
               cursor_x = csi_parameters(1).toInt -1
             }
             screen.set_cursor(cursor_x, cursor_y)
-            log("CSI " + cursor_y + ";" + cursor_x + "H", Levels.INFO)
+            logger.log("CSI " + cursor_y + ";" + cursor_x + "H", LogLevel.INFO)
           } else if (c == 'K') {
             val par =
               if (csi_parameters.nonEmpty) {
@@ -272,9 +272,9 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
             if (par == "0") {
               screen.erase_line_from_cursor()
               screen.set_cursor(screen.cursor.x, screen.cursor.y)
-              log("CSI " + par + "K", Levels.INFO)
+              logger.log("CSI " + par + "K", LogLevel.INFO)
             } else {
-              log("unhandled CSI " + par + "K", Levels.WARN)
+              logger.log("unhandled CSI " + par + "K", LogLevel.WARN)
             }
           } else if (c == 'C') {
             val par =
@@ -286,7 +286,7 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
             // TODO I don't like it, but the cursor position can be different after flush
             screen.flush()
             screen.set_cursor(screen.cursor.x + par.toInt, screen.cursor.y)
-            log("CSI " + par + "C", Levels.INFO)
+            logger.log("CSI " + par + "C", LogLevel.INFO)
             // Cursor Backward
           } else if (c == 'D') {
             val par =
@@ -298,7 +298,7 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
             // TODO I don't like it, but the cursor position can be different after flush
             screen.flush()
             screen.set_cursor(screen.cursor.x - par.toInt, screen.cursor.y)
-            log("CSI " + par + "D", Levels.INFO)
+            logger.log("CSI " + par + "D", LogLevel.INFO)
             // goto column
           } else if (c == 'G') {
             val par =
@@ -310,47 +310,47 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
             // TODO I don't like it, but the cursor position can be different after flush
             screen.flush()
             screen.set_cursor(screen.cursor.x, par.toInt -1)
-            log("CSI " + par + "G", Levels.INFO)
+            logger.log("CSI " + par + "G", LogLevel.INFO)
           } else if (c == 'h' && csi_parameters.nonEmpty) {
             if (csi_parameters(0) == "?" && csi_parameters.length == 2) {
               if (csi_parameters(1) == "1") {
                 app_mode = true
-                log("CSI ?1h", Levels.INFO)
+                logger.log("CSI ?1h", LogLevel.INFO)
               } else if (csi_parameters(1) == "7") {
                 screen.wrap_around = true
-                log("CSI ?7h", Levels.INFO)
+                logger.log("CSI ?7h", LogLevel.INFO)
               } else if (csi_parameters(1) == "25") {
                 screen.show_cursor()
-                log("CSI ?25h", Levels.INFO)
+                logger.log("CSI ?25h", LogLevel.INFO)
               } else {
-                if (is_log(Levels.WARN)) {
-                  log("unhandled CSI " + csi_parameters + "h", Levels.WARN)
+                if (logger.isLoggable(LogLevel.WARN)) {
+                  logger.log("unhandled CSI " + csi_parameters + "h", LogLevel.WARN)
                 }
               }
             } else {
-              if (is_log(Levels.WARN)) {
-                log("unhandled CSI " + csi_parameters + "h", Levels.WARN)
+              if (logger.isLoggable(LogLevel.WARN)) {
+                logger.log("unhandled CSI " + csi_parameters + "h", LogLevel.WARN)
               }
             }
           } else if (c == 'l' && csi_parameters.nonEmpty) {
             if (csi_parameters(0) == "?" && csi_parameters.length == 2) {
               if (csi_parameters(1) == "1") {
                 app_mode = false
-                log("CSI ?1l", Levels.INFO)
+                logger.log("CSI ?1l", LogLevel.INFO)
               } else if (csi_parameters(1) == "7") {
                 screen.wrap_around = false
-                log("CSI ?7l", Levels.INFO)
+                logger.log("CSI ?7l", LogLevel.INFO)
               } else if (csi_parameters(1) == "25") {
                 screen.hide_cursor()
-                log("CSI ?25l", Levels.INFO)
+                logger.log("CSI ?25l", LogLevel.INFO)
               } else {
-                if (is_log(Levels.WARN)) {
-                  log("unhandled CSI " + csi_parameters + "l", Levels.WARN)
+                if (logger.isLoggable(LogLevel.WARN)) {
+                  logger.log("unhandled CSI " + csi_parameters + "l", LogLevel.WARN)
                 }
               }
             } else {
-              if (is_log(Levels.WARN)) {
-                log("unhandled CSI " + csi_parameters + "l", Levels.WARN)
+              if (logger.isLoggable(LogLevel.WARN)) {
+                logger.log("unhandled CSI " + csi_parameters + "l", LogLevel.WARN)
               }
             }
           } else if (c == 'P') {
@@ -361,7 +361,7 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
                 "1"
               }
             screen.delete_chars(par.toInt)
-            log("CSI " + par + "P", Levels.INFO)
+            logger.log("CSI " + par + "P", LogLevel.INFO)
           } else if (c == 'A') {
             val par =
               if (csi_parameters.nonEmpty) {
@@ -370,7 +370,7 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
                 "1"
               }
             screen.up(par.toInt, false)
-            log("CSI " + par + "A", Levels.INFO)
+            logger.log("CSI " + par + "A", LogLevel.INFO)
           } else if (c == 'r') {
             val par =
               if (csi_parameters.nonEmpty) {
@@ -380,8 +380,8 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
               }
             // Restore DEC Private Mode Values. The value of P s previously saved is restored. P s values are the same as for DECSET.
             if (par == "?") {
-              if (is_log(Levels.WARN)) {
-                log("unhandled CSI " + csi_parameters + c, Levels.WARN)
+              if (logger.isLoggable(LogLevel.WARN)) {
+                logger.log("unhandled CSI " + csi_parameters + c, LogLevel.WARN)
               }
               // scroll region
             } else {
@@ -391,8 +391,8 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
                 screen.scroll_region = new ScrollRegion(csi_parameters(0).toInt -1,
                   csi_parameters(1).toInt -1)
               }
-              if (is_log(Levels.INFO)) {
-                log("CSI " + csi_parameters + c, Levels.INFO)
+              if (logger.isLoggable(LogLevel.INFO)) {
+                logger.log("CSI " + csi_parameters + c, LogLevel.INFO)
               }
             }
           } else if (c == 'm') {
@@ -441,7 +441,7 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
                 } else if (par == "49") {
                   screen.set_default_bg_color()
                 } else {
-                  log("unhandled CSI: " + par + c, Levels.WARN)
+                  logger.log("unhandled CSI: " + par + c, LogLevel.WARN)
                 }
               }
             } else {
@@ -456,7 +456,7 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
                 "1"
               }
             screen.insert_lines(par.toInt)
-            log("CSI " + par + "L", Levels.INFO)
+            logger.log("CSI " + par + "L", LogLevel.INFO)
             // delete lines
           } else if (c == 'M') {
             val par =
@@ -466,7 +466,7 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
                 "1"
               }
             screen.delete_lines(par.toInt)
-            log("CSI " + par + "M", Levels.INFO)
+            logger.log("CSI " + par + "M", LogLevel.INFO)
             // insert chars
           } else if (c == '@') {
             val par =
@@ -476,10 +476,10 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
                 "1"
               }
             screen.insert_chars(par.toInt)
-            log("CSI " + par + "@", Levels.INFO)
+            logger.log("CSI " + par + "@", LogLevel.INFO)
           } else {
-            if (is_log(Levels.WARN)) {
-              log("unhandled CSI: " + csi_parameters + c, Levels.WARN)
+            if (logger.isLoggable(LogLevel.WARN)) {
+              logger.log("unhandled CSI: " + csi_parameters + c, LogLevel.WARN)
             }
           }
           current = ""
@@ -493,7 +493,7 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
           if (current.length > 2 && current.substring(0, 2) == "0;") {
 
           } else {
-            log("unhandled OS command:'" + current + "'", Levels.ERROR)
+            logger.log("unhandled OS command:'" + current + "'", LogLevel.ERROR)
           }
           current = ""
           state = 0
@@ -518,7 +518,7 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
           this.current = '';
           this.state = 0;
           */
-          log("unhandled APP command:'" + current + "'", Levels.ERROR)
+          logger.log("unhandled APP command:'" + current + "'", LogLevel.ERROR)
         } else {
           current += c
         }
@@ -534,11 +534,11 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
           screen.backspace()
           // BELL
         } else if (code == 7) {
-          log("BELL", Levels.INFO)
+          logger.log("BELL", LogLevel.INFO)
           // LINE FEED
         } else if (code == 10) {
           screen.line_feed()
-          log("char:LF", Levels.INFO)
+          logger.log("char:LF", LogLevel.INFO)
           // CARRIAGE RETURN
         } else if (code == 13) {
           //                if (this.icrnl) {
@@ -546,12 +546,12 @@ class TerminalImpl(val screen: CanvasTextScreen, inputHandler: CanvasInputHandle
           //                } else {
           screen.carriage_return()
           //                }
-          log("char:CR", Levels.INFO)
+          logger.log("char:CR", LogLevel.INFO)
         } else if (c == '\t') {
           this.screen.tab()
-          log("char:TAB", Levels.INFO)
+          logger.log("char:TAB", LogLevel.INFO)
         } else if (code < 32) {
-          log("unknown char, code:" + code, Levels.INFO)
+          logger.log("unknown char, code:" + code, LogLevel.INFO)
         } else {
           this.screen.add_char(c)
           // log('char:"' + c + '"', DEBUG);

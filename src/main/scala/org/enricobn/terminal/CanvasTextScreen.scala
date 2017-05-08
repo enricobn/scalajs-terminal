@@ -13,7 +13,7 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
   */
 @JSExportAll
 @JSExport(name = "CanvasTextScreen")
-class CanvasTextScreen(val canvasId: String) extends JSLog {
+class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
   private var cell_attributes: scala.Option[CellAttributes] = None
   private var selection: scala.Option[Selection] = None
   private var updated = true
@@ -424,13 +424,13 @@ class CanvasTextScreen(val canvasId: String) extends JSLog {
       cells(cursor.y) = s
 
       if (cursor.x == width) {
-        log("Screen: attempt to write '" + c + "' to (" + cursor.x + ", " + cursor.y + ")", Levels.INFO)
+        logger.log("Screen: attempt to write '" + c + "' to (" + cursor.x + ", " + cursor.y + ")", LogLevel.INFO)
       }
       if (colors) {
         cells_attributes(cursor.y)(cursor.x) = attributes
       }
     } else {
-      log("Screen: attempt to write '" + c + "' to (" + cursor.x + ", " + cursor.y + ")", Levels.INFO)
+      logger.log("Screen: attempt to write '" + c + "' to (" + cursor.x + ", " + cursor.y + ")", LogLevel.INFO)
     }
   }
 
@@ -558,7 +558,7 @@ class CanvasTextScreen(val canvasId: String) extends JSLog {
 
     // TODO colors
     if (colors) {
-      log("insert_chars, colors not handled", Levels.ERROR)
+      logger.log("insert_chars, colors not handled", LogLevel.ERROR)
     }
 
     // I don't move the cursor

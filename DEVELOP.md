@@ -1,14 +1,22 @@
-DEVELOP
-=======
-you can run 'sbt ~fastOptJS' to fast compile and recompile on changes
+Develop
+========
+to fast compile and recompile on changes:
+
+`sbt ~fastOptJS`
+
 then open demo_develop.html
 
 
-PRODUCTION
-==========
-to build an optimized javascript to use in production run 'sbt fullOptJS'
+Production
+===========
+to build an optimized javascript to use in production:
+
+`sbt fullOptJS`
+  
 then open demo.html
 
-INSTALL LOCALLY
-===============
-you can run 'sbt publish-local' to install this library to local repository
+Install locally
+================
+to install this library to local repository:
+
+`sbt publish-local` 
