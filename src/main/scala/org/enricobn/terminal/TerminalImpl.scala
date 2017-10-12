@@ -14,7 +14,7 @@ object TerminalImpl {
 }
 @JSExport(name = "Terminal")
 @JSExportAll
-class TerminalImpl(val screen: CanvasTextScreen, val inputHandler: CanvasInputHandler, val logger: JSLogger, val soundResource: String = null) extends Terminal {
+class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val logger: JSLogger, val soundResource: String = null) extends Terminal {
   import TerminalImpl._
 
   private val inputPub = new StringPub
@@ -186,7 +186,7 @@ class TerminalImpl(val screen: CanvasTextScreen, val inputHandler: CanvasInputHa
             text = text.substr(3);
         }
     */
-    if (this.screen.scrolling) {
+    if (this.screen.is_scrolling()) {
       screen.reset_scrolling()
     }
 

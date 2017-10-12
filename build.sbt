@@ -17,6 +17,8 @@ lazy val root = (project in file("."))
     libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.1",
     libraryDependencies ++= Seq("org.scala-lang" % "scala-reflect" % "2.11.8"),
     // TEST
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test",
+    libraryDependencies += "org.scalamock" %% "scalamock-scalatest-support" % "3.3.0" % "test",
     libraryDependencies += "com.lihaoyi" %%% "utest" % "0.4.3" % "test",
     testFrameworks += new TestFramework("utest.runner.Framework")
   )

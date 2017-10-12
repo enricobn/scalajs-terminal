@@ -14,7 +14,7 @@
             Your browser does not support the HTML5 canvas tag.</canvas>
 
         <script type="text/javascript">
-            var logger = new JSLogger();
+            var logger = new JSLoggerImpl();
             var screen = new CanvasTextScreen('screenCanvas', logger);
             var input = new CanvasInputHandler('screenCanvas');
             var terminal = new Terminal(screen, input, logger, 'typewriter-key-1.wav');
@@ -28,6 +28,11 @@
             screen.scroll_down(5, true);
             screen.update();
             terminal.add('Hello world\n');
+
+            var terminalColors = new TerminalColors();
+            terminalColors.blue().add('blue');
+            terminal.add('Hello' + terminalColors.toString() + 'world\n');
+
             terminal.flush();
         </script>
 

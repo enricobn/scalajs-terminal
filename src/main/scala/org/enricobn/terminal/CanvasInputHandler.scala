@@ -11,7 +11,7 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
   */
 @JSExportAll
 @JSExport(name = "CanvasInputHandler")
-class CanvasInputHandler(val canvasId: String) {
+class CanvasInputHandler(val canvasId: String) extends InputHandler {
   private val canvas: HTMLElement = dom.document.getElementById(canvasId).asInstanceOf[Canvas]
   private val keyDownPub = new KeyDownPub //.Publisher[] {}//new ListBuffer[Int =>()]
   private val keyPressPub = new KeyPressPub //new ListBuffer[Char =>()]
@@ -31,6 +31,7 @@ class CanvasInputHandler(val canvasId: String) {
   canvas.onkeypress = { (e: dom.KeyboardEvent) =>
     e.preventDefault()
     e.stopPropagation()
+    // TODO IntelliJ shows an error, but not if I compile nor in build.
     val char = e.key(0)
     keyPressPub.publish(char)
   }
@@ -38,19 +39,19 @@ class CanvasInputHandler(val canvasId: String) {
   // to let the canvas has focus
   canvas.tabIndex = 1000
 
-  def onKeyDown(subscriber: KeyDownPub#Sub) {
+  override def onKeyDown(subscriber: KeyDownPub#Sub) {
     keyDownPub.subscribe(subscriber)
   }
 
-  def onKeyPress(subscriber: KeyPressPub#Sub) {
+  override def onKeyPress(subscriber: KeyPressPub#Sub) {
     keyPressPub.subscribe(subscriber)
   }
 
-  def removeKeyDown(subscriber: KeyDownPub#Sub) {
+  override def removeKeyDown(subscriber: KeyDownPub#Sub) {
     keyDownPub.removeSubscription(subscriber)
   }
 
-  def removeKeyPress(subscriber: KeyPressPub#Sub) {
+  override def removeKeyPress(subscriber: KeyPressPub#Sub) {
     keyPressPub.removeSubscription(subscriber)
   }
 

@@ -13,7 +13,7 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
   */
 @JSExportAll
 @JSExport(name = "CanvasTextScreen")
-class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
+class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends TextScreen {
   private var cell_attributes: scala.Option[CellAttributes] = None
   private var selection: scala.Option[Selection] = None
   private var updated = true
@@ -29,12 +29,12 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
   // I must apply attributes (font basically) to calculate font size
   default_cell_attributes.apply(ctx, font_base)
 
-  var wrap_around = false
+  override var wrap_around = false
   private val cell_width = ctx.measureText("M").width
   private val cell_height = getFontHeight("Courier New", "16px", "Mg")
 
-  val width: Int = (canvas.width / cell_width).toInt
-  val height: Int = canvas.height / cell_height.height
+  override val width: Int = (canvas.width / cell_width).toInt
+  override val height: Int = canvas.height / cell_height.height
 
   private val cells_attributes = new ArrayBuffer[ArrayBuffer[scala.Option[CellAttributes]]]()
 
@@ -57,10 +57,10 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
   // for cursor
   ctx.strokeStyle = default_cell_attributes.fg_color
 
-  var scroll_region = new ScrollRegion(0, height - 1)
+  override var scroll_region = new ScrollRegion(0, height - 1)
 
   // TODO accesor method
-  val cursor = new Coords(0, 0)
+  override val cursor = new Coords(0, 0)
 
   private val default_bg_color = dom.document.body.style.backgroundColor
 
@@ -79,24 +79,26 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
   private var scroll_back_line = 0
 
   // TODO accessor method
-  var scrolling = false
+  private var scrolling = false
+
+  override def is_scrolling() : Boolean = scrolling
 
   private var cursor_visible = true
 
 
-//  private def createContext() : CanvasRenderingContext2D = {
-//    val canvas = dom.document.createElement("Canvas").asInstanceOf[Canvas]
-//    canvas.style.zIndex = "0"
-//    canvas.style.position = "absolute"
-//    canvas.style.left = div.style.left// "0"
-//    canvas.style.top = div.style.top //"0"
-//    div.appendChild(canvas)
-//
-//    canvas.width = width
-//    canvas.height = height
-//
-//    canvas.getContext("2d").asInstanceOf[CanvasRenderingContext2D]
-//  }
+  //  private def createContext() : CanvasRenderingContext2D = {
+  //    val canvas = dom.document.createElement("Canvas").asInstanceOf[Canvas]
+  //    canvas.style.zIndex = "0"
+  //    canvas.style.position = "absolute"
+  //    canvas.style.left = div.style.left// "0"
+  //    canvas.style.top = div.style.top //"0"
+  //    div.appendChild(canvas)
+  //
+  //    canvas.width = width
+  //    canvas.height = height
+  //
+  //    canvas.getContext("2d").asInstanceOf[CanvasRenderingContext2D]
+  //  }
 
   private def initCellAttributes() {
     cells_attributes.clear()
@@ -110,7 +112,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     }
   }
 
-  def get_coords_at_pixel(x: Int, y: Int) : Coords = {
+  override def get_coords_at_pixel(x: Int, y: Int) : Coords = {
     new Coords(
       Math.max(0, Math.min(width -1, Math.floor(x / this.cell_width).toInt)),
       Math.max(0, Math.min(height - 1, Math.floor(y / this.cell_height.height).toInt))
@@ -118,7 +120,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
   }
 
   // {from:{x,y}, to{x,y}}
-  def set_selection(optionalSelection: scala.Option[Selection]) {
+  override def set_selection(optionalSelection: scala.Option[Selection]) {
     this.selection = optionalSelection
     this.updated = false
 
@@ -166,18 +168,18 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     }
   }
 
-  def get_selected_text() = selected_text
+  override def get_selected_text() : scala.Option[String] = selected_text
 
 
-  def scroll_back_page_up() =
+  override def scroll_back_page_up() =
     scroll_back_up(this.height)
 
 
-  def scroll_back_page_down() =
+  override def scroll_back_page_down() =
     scroll_back_down(this.height)
 
 
-  def scroll_back_up(lines: Int) {
+  override def scroll_back_up(lines: Int) {
     var real_scroll = lines
 
     scroll_back_line -= lines
@@ -201,7 +203,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     updated = false
   }
 
-  def scroll_back_down(lines: Int) {
+  override def scroll_back_down(lines: Int) {
     var real_scroll = lines
     scroll_back_line += lines
 
@@ -223,13 +225,13 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     updated = false
   }
 
-  def reset_scrolling() {
+  override def reset_scrolling() {
     flush()
     scrolling = false
     scroll_back_line = scroll_back_buffer.length
   }
 
-  def update() {
+  override def update() {
     if (!updated) {
       //        this.canvas.width = this.canvas.width;
       ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -281,7 +283,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     }
   }
 
-  def flush() {
+  override def flush() {
     if (chars_buffer.length == 0) {
       return
     }
@@ -308,7 +310,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     updated = false
   }
 
-  def clone_attributes() : CellAttributes = {
+  override def clone_attributes() : CellAttributes = {
     if (cell_attributes.isDefined) {
       cell_attributes.get.copy()
     } else {
@@ -316,7 +318,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     }
   }
 
-  def set_normal() {
+  override def set_normal() {
     if (!colors) {
       return
     }
@@ -325,7 +327,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     cell_attributes.get.bold = false
   }
 
-  def set_bold() {
+  override def set_bold() {
     if (!colors) {
       return
     }
@@ -334,7 +336,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     cell_attributes.get.bold = true
   }
 
-  def set_default_fg_color() {
+  override def set_default_fg_color() {
     if (!colors) {
       return
     }
@@ -343,7 +345,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     cell_attributes.get.fg_color = default_cell_attributes.fg_color
   }
 
-  def set_default_bg_color() {
+  override def set_default_bg_color() {
     if (!colors) {
       return
     }
@@ -352,12 +354,12 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     this.cell_attributes.get.bg_color = default_cell_attributes.bg_color
   }
 
-  def set_default_attributes() {
+  override def set_default_attributes() {
     flush()
     cell_attributes = None
   }
 
-  def set_fg_color(color: String) {
+  override def set_fg_color(color: String) {
     if (!colors) {
       return
     }
@@ -366,7 +368,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     cell_attributes.get.fg_color = color
   }
 
-  def set_bg_color(color: String) {
+  override def set_bg_color(color: String) {
     if (!colors) {
       return
     }
@@ -376,7 +378,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
   }
 
   // add char to cursor position and increment cursor
-  def add_char(c: Char) {
+  override def add_char(c: Char) {
     if (!equals_attributes(cell_attributes, ctx_cell_attributes)) {
       flush()
     }
@@ -387,11 +389,11 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     chars_buffer += c
   }
 
-  def is_valid_cursor(x: Int, y: Int) : Boolean =
+  override def is_valid_cursor(x: Int, y: Int) : Boolean =
     x >=0 && x <= width && y >=0 && y < height
 
 
-  def apply_cell_attributes(context: CanvasRenderingContext2D, attributes: scala.Option[CellAttributes]) {
+  override def apply_cell_attributes(context: CanvasRenderingContext2D, attributes: scala.Option[CellAttributes]) {
     flush()
 
     if (!equals_attributes(attributes, ctx_cell_attributes)) {
@@ -405,7 +407,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
   }
 
   // set the char in cursor position, without affecting the cursor position
-  def set_char(c: Char, attributes: scala.Option[CellAttributes]) {
+  override def set_char(c: Char, attributes: scala.Option[CellAttributes]) {
     flush()
     // if a char is written outside the window I go to the next line, it happens within vim and bash itself
     if (cursor.x >= width) {
@@ -413,7 +415,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     }
 
     if (cursor.x <= width) {// && this.cursor.y < this.height) {
-      var s = ""
+    var s = ""
       if (cursor.x > 0) {
         s = cells(cursor.y).substring(0, cursor.x)
       }
@@ -434,13 +436,13 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     }
   }
 
-  def tab() {
+  override def tab() {
     flush()
     set_cursor(cursor.x - cursor.x % 8 + 8, cursor.y)
   }
 
   // delete char in cursor position
-  def delete_chars(count: Int) {
+  override def delete_chars(count: Int) {
     flush()
     var cursor_x = cursor.x
     var cursor_y = cursor.y
@@ -466,19 +468,19 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     set_cursor(cursor_x, cursor_y)
   }
 
-  def redraw(context: CanvasRenderingContext2D) {
+  override def redraw(context: CanvasRenderingContext2D) {
     flush()
     updated = false
   }
 
-  def draw(context: CanvasRenderingContext2D) {
+  override def draw(context: CanvasRenderingContext2D) {
     flush()
     for (y <- 0 until height) {
       draw_line(context, y)
     }
   }
 
-  def insert_lines(count: Int) {
+  override def insert_lines(count: Int) {
     flush()
     val scroll_region = new ScrollRegion(this.scroll_region.first, this.scroll_region.last)
 
@@ -487,7 +489,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     this.scroll_region = scroll_region
   }
 
-  def delete_lines(count: Int) {
+  override def delete_lines(count: Int) {
     flush()
     val scroll_region = new ScrollRegion(this.scroll_region.first, this.scroll_region.last)
 
@@ -496,13 +498,13 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     this.scroll_region = scroll_region
   }
 
-  def redraw_line(context: CanvasRenderingContext2D, line: Int) {
+  override def redraw_line(context: CanvasRenderingContext2D, line: Int) {
     flush()
     context.clearRect(0, line * cell_height.height, canvas.width, (line + 1) * cell_height.height)
     draw_line(context, line)
   }
 
-  def equals_attributes(a1: scala.Option[CellAttributes], a2: scala.Option[CellAttributes]) : Boolean = {
+  override def equals_attributes(a1: scala.Option[CellAttributes], a2: scala.Option[CellAttributes]) : Boolean = {
     if (a1.isDefined) {
       if (a2.isDefined) {
         a1.equals(a2)
@@ -516,7 +518,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     }
   }
 
-  def draw_line(context: CanvasRenderingContext2D, line: Int) {
+  override def draw_line(context: CanvasRenderingContext2D, line: Int) {
     flush()
     if (colors) {
       // I try to optimize, rendering text in chunks of equal attributes
@@ -524,7 +526,8 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
       for (x <- 0 until width) {
         val attributes = cells_attributes(line)(x)
         if (!equals_attributes(attributes, ctx_cell_attributes)) {
-          context.fillText(cells(line).substring(current_x, x -current_x), current_x * cell_width, line * cell_height.height +
+          val str = cells(line).substring(current_x, x)
+          context.fillText(str, current_x * cell_width, line * cell_height.height +
             cell_height.ascent)
           apply_cell_attributes(context, attributes)
           current_x = x
@@ -541,7 +544,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     }
   }
 
-  def insert_chars(count: Int) {
+  override def insert_chars(count: Int) {
     flush()
     var s = ""
     if (cursor.x > 0) {
@@ -568,7 +571,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
   /**
     * scroll_back true if it must put the scrolled region to the scroll buffer
     */
-  def scroll_up(count: Int, scroll_back: Boolean) {
+  override def scroll_up(count: Int, scroll_back: Boolean) {
     flush()
 
     if (selection.isDefined) {
@@ -637,7 +640,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
   /**
     * scroll_back true if it must get lines from scroll buffer
     */
-  def scroll_down(count: Int, scroll_back: Boolean) {
+  override def scroll_down(count: Int, scroll_back: Boolean) {
     flush()
 
     if (selection.isDefined) {
@@ -663,9 +666,9 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
         if (scroll_back_buffer.nonEmpty) {
           cells(y-1) = scroll_back_buffer.remove(scroll_back_line -1)
           // TODO colors
-//          if (colors) {
-//            cells_attributes(y) = cells_attributes(y - count)
-//          }
+          //          if (colors) {
+          //            cells_attributes(y) = cells_attributes(y - count)
+          //          }
           scroll_back_line -= 1
         }
       } else {
@@ -708,7 +711,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     this.cursor_visible = cursor_visible
   }
 
-  def hide_cursor() {
+  override def hide_cursor() {
     if (cursor_visible) {
       flush()
       if (cursor.x <= width) {
@@ -718,7 +721,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     }
   }
 
-  def show_cursor() {
+  override def show_cursor() {
     if (!cursor_visible) {
       flush()
       if (cursor.x <= width) {
@@ -728,7 +731,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     }
   }
 
-  def set_cursor(_x: Int, _y: Int) {
+  override def set_cursor(_x: Int, _y: Int) {
     flush()
 
     var x = _x
@@ -764,23 +767,23 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
 
   }
 
-  def cursor_right() {
+  override def cursor_right() {
     flush()
     set_cursor(cursor.x + 1, cursor.y)
   }
 
-  def carriage_return() {
+  override def carriage_return() {
     flush()
     set_cursor(0, cursor.y)
   }
 
-  def line_feed() {
+  override def line_feed() {
     flush()
     // TODO I don't know if it's correct to got tho first column
     set_cursor(0, cursor.y + 1)
   }
 
-  def clear(reset_cursor: Boolean) {
+  override def clear(reset_cursor: Boolean) {
     // TODO it's a trick to clear selection when running a program which clears the screen (vim, less, etc.)
     set_selection(None)
 
@@ -798,9 +801,9 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
           }
       */
       cells += empty_row
-//      if (colors) {
-//        cells_attributes.push(new Array(this.width +1));
-//      }
+      //      if (colors) {
+      //        cells_attributes.push(new Array(this.width +1));
+      //      }
     }
 
     if (reset_cursor) {
@@ -810,7 +813,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     }
   }
 
-  def erase_line_from_cursor() {
+  override def erase_line_from_cursor() {
     flush()
     // TODO optimize with substr
     var s = ""
@@ -828,7 +831,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
 
   }
 
-  def backspace() {
+  override def backspace() {
     flush()
     if (cursor.x > 0) {
       set_cursor(cursor.x - 1, cursor.y)
@@ -841,7 +844,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
   /**
     * scroll_back true if it must get lines from scroll buffer
     */
-  def up(count: Int, scroll_back: Boolean) {
+  override def up(count: Int, scroll_back: Boolean) {
     flush()
     // TODO optimize without a loop
     for (i <- 0 until count) {
@@ -871,7 +874,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLogger) {
     div.appendChild(block)
 
 
-//    var body = $('body');
+    //    var body = $('body');
     dom.document.body.appendChild(div)
 
     block.style.verticalAlign = "baseline"
