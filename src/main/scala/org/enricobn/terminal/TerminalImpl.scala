@@ -9,9 +9,12 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
   */
 
 object TerminalImpl {
-  def fromCharCode(code: Int) = code.toChar.toString
-  val ESC = fromCharCode(27)
+  def fromCharCode(code: Int): String = code.toChar.toString
+
+  val ESC: String = fromCharCode(27)
+
 }
+
 @JSExport(name = "Terminal")
 @JSExportAll
 class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val logger: JSLogger, val soundResource: String = null) extends Terminal {
@@ -98,7 +101,7 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
         // Page up
       } else if (keyCode == 33) {
         if (event.shiftKey) {
-          scroll_back_page_up()
+          screen.scroll_back_page_up()
         } else {
           inputPub.publish(ESC + "[5~")
         }
@@ -106,7 +109,7 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
         // Page down
       } else if (keyCode == 34) {
         if (event.shiftKey) {
-          scroll_back_page_down()
+          screen.scroll_back_page_down()
         } else {
           inputPub.publish(ESC + "[6~")
         }
@@ -163,14 +166,6 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
 
   override def removeOnInputs() {
     inputPub.removeSubscriptions()
-  }
-
-  override def scroll_back_page_up() {
-    screen.scroll_back_page_up()
-  }
-
-  override def scroll_back_page_down() {
-    screen.scroll_back_page_down()
   }
 
   // add string to cursor position

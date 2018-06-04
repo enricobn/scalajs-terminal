@@ -11,12 +11,11 @@ trait Terminal {
 
   def removeOnInputs()
 
-  def scroll_back_page_up()
-
-  def scroll_back_page_down()
-
-  // add string to cursor position
+  /**
+    * Add text to cursor position.
+    */
   def add(text: String)
 
   def flush()
+
 }
