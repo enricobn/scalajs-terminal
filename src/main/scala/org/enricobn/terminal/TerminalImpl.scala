@@ -3,22 +3,15 @@ package org.enricobn.terminal
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.scalajs.js.annotation.{JSExport, JSExportAll}
+import Terminal._
 
 /**
   * Created by enrico on 11/30/16.
   */
 
-object TerminalImpl {
-  def fromCharCode(code: Int): String = code.toChar.toString
-
-  val ESC: String = fromCharCode(27)
-
-}
-
 @JSExport(name = "Terminal")
 @JSExportAll
 class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val logger: JSLogger, val soundResource: String = null) extends Terminal {
-  import TerminalImpl._
 
   private val inputPub = new StringPub
   private var state = 0
