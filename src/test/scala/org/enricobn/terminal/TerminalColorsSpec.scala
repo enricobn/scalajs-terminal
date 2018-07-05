@@ -5,9 +5,9 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class TerminalColorsSpec extends FlatSpec with MockFactory with Matchers {
 
-  "" should "" in {
+  "it" should "work" in {
     val colors = new TerminalColors()
-    colors.blue.add("is blue")
+    colors.blue().add("is blue")
 
     val screen = mock[TextScreen]
     (screen.is_scrolling: () => Boolean).expects().returning(false)

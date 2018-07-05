@@ -111,10 +111,14 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
       } else if (keyCode == 46) {
         inputPub.publish(ESC + "[3~")
         event.preventDefault = true
+        // Enter
       } else if (keyCode == 13) {
         //            if (ter.icrnl) {
         //                inputPub.publish(fromCharCode(10));
         //            } else {
+        if (soundEffect.isDefined) {
+          soundEffect.get.play()
+        }
         inputPub.publish(fromCharCode(13))
         //            }
         event.preventDefault = true

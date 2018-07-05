@@ -21,7 +21,7 @@ class TerminalColors {
   }
 
   def m(value: Int, s: String): TerminalColors = {
-    m(value).add(s).end
+    m(value).add(s).end()
   }
 
   def bold(): TerminalColors = {
@@ -77,7 +77,7 @@ class TerminalColors {
     this
   }
 
-  override def toString() : String = {
+  override def toString: String = {
     endAll()
     sb.toString
   }
