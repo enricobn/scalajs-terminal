@@ -12,7 +12,7 @@ class TerminalColorsSpec extends FlatSpec with MockFactory with Matchers {
     val screen = mock[TextScreen]
     (screen.is_scrolling: () => Boolean).expects().returning(false)
     expectsAdd(screen, "hello ")
-    (screen.set_fg_color _).expects("cyan")
+    (screen.set_fg_color _).expects("blue")
     expectsAdd(screen, "is blue")
     (screen.set_default_attributes: () => Unit).expects()
     expectsAdd(screen, " world")

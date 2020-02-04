@@ -4,6 +4,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.scalajs.js.annotation.{JSExport, JSExportAll}
 import Terminal._
+import org.enricobn.terminal.ColorEnum.ColorEnum
 
 /**
   * Created by enrico on 11/30/16.
@@ -11,7 +12,8 @@ import Terminal._
 
 @JSExport(name = "Terminal")
 @JSExportAll
-class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val logger: JSLogger, val soundResource: String = null) extends Terminal {
+class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val logger: JSLogger, val soundResource: String = null,
+                   val termColors: TermColors = new TermColors) extends Terminal {
 
   private val inputPub = new StringPub
   private var state = 0
@@ -209,7 +211,7 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
             // Reverse index (cursor up with scroll down when at margin)
           } else if (c == 'M') {
             // TODO false is for compatibility with wshell, but I don't know if I must take care of the back buffer
-            screen.up(1, false)
+            screen.up(1, scroll_back = false)
           } else {
             logger.log("unhandled escape: " + c, LogLevel.WARN)
           }
@@ -361,7 +363,7 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
               } else {
                 "1"
               }
-            screen.up(par.toInt, false)
+            screen.up(par.toInt, scroll_back = false)
             logger.log("CSI " + par + "A", LogLevel.INFO)
           } else if (c == 'r') {
             val par =
@@ -378,9 +380,9 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
               // scroll region
             } else {
               if (csi_parameters.isEmpty) {
-                screen.scroll_region = new ScrollRegion(0, screen.height -1)
+                screen.scroll_region = ScrollRegion(0, screen.height -1)
               } else {
-                screen.scroll_region = new ScrollRegion(csi_parameters(0).toInt -1,
+                screen.scroll_region = ScrollRegion(csi_parameters(0).toInt -1,
                   csi_parameters(1).toInt -1)
               }
               if (logger.isLoggable(LogLevel.INFO)) {
@@ -397,39 +399,39 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
                 } else if (par == "22") {
                   screen.set_normal()
                 } else if (par == "30") {
-                  screen.set_fg_color("blue") // BLACK TODO restore when handled bg
+                  screen.set_fg_color(termColors.get(ColorEnum.black))
                 } else if (par == "31") {
-                  screen.set_fg_color("red")
+                  screen.set_fg_color(termColors.get(ColorEnum.red))
                 } else if (par == "32") {
-                  screen.set_fg_color("green")
+                  screen.set_fg_color(termColors.get(ColorEnum.green))
                 } else if (par == "33") {
-                  screen.set_fg_color("yellow")
+                  screen.set_fg_color(termColors.get(ColorEnum.yellow))
                 } else if (par == "34") {
-                  screen.set_fg_color("cyan") // BLUE
+                  screen.set_fg_color(termColors.get(ColorEnum.blue))
                 } else if (par == "35") {
-                  screen.set_fg_color("magenta")
+                  screen.set_fg_color(termColors.get(ColorEnum.magenta))
                 } else if (par == "36") {
-                  screen.set_fg_color("cyan")
+                  screen.set_fg_color(termColors.get(ColorEnum.cyan))
                 } else if (par == "37") {
-                  screen.set_fg_color("white")
+                  screen.set_fg_color(termColors.get(ColorEnum.white))
                 } else if (par == "39") {
                   screen.set_default_fg_color()
                 } else if (par == "40") {
-                  screen.set_bg_color("blue") // BLACK TODO restore when handled bg
+                  screen.set_bg_color(termColors.get(ColorEnum.black))
                 } else if (par == "41") {
-                  screen.set_bg_color("red")
+                  screen.set_bg_color(termColors.get(ColorEnum.red))
                 } else if (par == "42") {
-                  screen.set_bg_color("green")
+                  screen.set_bg_color(termColors.get(ColorEnum.green))
                 } else if (par == "43") {
-                  screen.set_bg_color("yellow")
+                  screen.set_bg_color(termColors.get(ColorEnum.yellow))
                 } else if (par == "44") {
-                  screen.set_bg_color("cyan") // BLUE
+                  screen.set_bg_color(termColors.get(ColorEnum.blue))
                 } else if (par == "45") {
-                  screen.set_bg_color("magenta")
+                  screen.set_bg_color(termColors.get(ColorEnum.magenta))
                 } else if (par == "46") {
-                  screen.set_bg_color("cyan")
+                  screen.set_bg_color(termColors.get(ColorEnum.cyan))
                 } else if (par == "47") {
-                  screen.set_bg_color("white")
+                  screen.set_bg_color(termColors.get(ColorEnum.white))
                 } else if (par == "49") {
                   screen.set_default_bg_color()
                 } else {
@@ -556,5 +558,37 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
   override def flush() {
     screen.update()
   }
+
+}
+
+object ColorEnum extends Enumeration {
+  type ColorEnum = Value
+
+  val black: ColorEnum = Value("black")
+  val red: ColorEnum = Value("red")
+  val green: ColorEnum = Value("green")
+  val yellow: ColorEnum = Value("yellow")
+  val blue: ColorEnum = Value("blue")
+  val magenta: ColorEnum = Value("magenta")
+  val cyan: ColorEnum = Value("cyan")
+  val white: ColorEnum = Value("white")
+}
+
+class TermColors {
+
+  private val colors = mutable.Map[ColorEnum.ColorEnum, String](
+    ColorEnum.black -> "black",
+    ColorEnum.red -> "red",
+    ColorEnum.green -> "green",
+    ColorEnum.yellow -> "yellow",
+    ColorEnum.blue -> "blue",
+    ColorEnum.magenta -> "magenta",
+    ColorEnum.cyan -> "cyan",
+    ColorEnum.white -> "white"
+  )
+
+  def get(color: ColorEnum.ColorEnum): String = colors(color)
+
+  def set(color: ColorEnum.ColorEnum, value: String): Unit = colors(color) = value
 
 }
