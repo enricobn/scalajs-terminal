@@ -20,7 +20,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
   private var selected_text: scala.Option[String] = None
   private var cells = new ArrayBuffer[String]()
 
-  private val default_cell_attributes = new CellAttributes(false, false, "white")
+  private var default_cell_attributes = new CellAttributes(false, false, "white")
 
   private val canvas = dom.document.getElementById(canvasId).asInstanceOf[Canvas]
   private val ctx = canvas.getContext("2d").asInstanceOf[CanvasRenderingContext2D]
@@ -57,10 +57,10 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
   // for cursor
   ctx.strokeStyle = default_cell_attributes.fg_color
 
-  override var scroll_region = new ScrollRegion(0, height - 1)
+  override var scroll_region = ScrollRegion(0, height - 1)
 
   // TODO accesor method
-  override val cursor = new Coords(0, 0)
+  override val cursor = Coords(0, 0)
 
   private val default_bg_color = dom.document.body.style.backgroundColor
 
@@ -113,8 +113,8 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
   }
 
   override def get_coords_at_pixel(x: Int, y: Int) : Coords = {
-    new Coords(
-      Math.max(0, Math.min(width -1, Math.floor(x / this.cell_width).toInt)),
+    Coords(
+      Math.max(0, Math.min(width - 1, Math.floor(x / this.cell_width).toInt)),
       Math.max(0, Math.min(height - 1, Math.floor(y / this.cell_height.height).toInt))
     )
   }
@@ -171,11 +171,11 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
   override def get_selected_text() : scala.Option[String] = selected_text
 
 
-  override def scroll_back_page_up() =
+  override def scroll_back_page_up(): Unit =
     scroll_back_up(this.height)
 
 
-  override def scroll_back_page_down() =
+  override def scroll_back_page_down(): Unit =
     scroll_back_down(this.height)
 
 
@@ -415,7 +415,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     }
 
     if (cursor.x <= width) {// && this.cursor.y < this.height) {
-    var s = ""
+      var s = ""
       if (cursor.x > 0) {
         s = cells(cursor.y).substring(0, cursor.x)
       }
@@ -482,19 +482,19 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
 
   override def insert_lines(count: Int) {
     flush()
-    val scroll_region = new ScrollRegion(this.scroll_region.first, this.scroll_region.last)
+    val scroll_region = ScrollRegion(this.scroll_region.first, this.scroll_region.last)
 
-    this.scroll_region = new ScrollRegion(cursor.y, this.scroll_region.last)
-    scroll_down(count, false)
+    this.scroll_region = ScrollRegion(cursor.y, this.scroll_region.last)
+    scroll_down(count, scroll_back = false)
     this.scroll_region = scroll_region
   }
 
   override def delete_lines(count: Int) {
     flush()
-    val scroll_region = new ScrollRegion(this.scroll_region.first, this.scroll_region.last)
+    val scroll_region = ScrollRegion(this.scroll_region.first, this.scroll_region.last)
 
-    this.scroll_region = new ScrollRegion(cursor.y, this.scroll_region.last)
-    scroll_up(count, false)
+    this.scroll_region = ScrollRegion(cursor.y, this.scroll_region.last)
+    scroll_up(count, scroll_back = false)
     this.scroll_region = scroll_region
   }
 
@@ -760,7 +760,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     if (y > this.scroll_region.last) {
       // to handle infinite loop, since scroll_up can make a set_cursor
       cursor.y = scroll_region.last
-      scroll_up(y - scroll_region.last, true)
+      scroll_up(y - scroll_region.last, scroll_back = true)
       set_cursor(x, scroll_region.last)
     }
     //        console.warn('Screen: attempt to set cursor to (' + cell.x + ', ' + cell.y + ')');
@@ -856,6 +856,10 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     }
   }
 
+  override def setDefaultCellAttributes(cellAttributes: CellAttributes): Unit = {
+    this.default_cell_attributes = cellAttributes
+  }
+
   /*
  * from http://stackoverflow.com/questions/1134586/how-can-you-find-the-height-of-text-on-an-html-canvas
  */
@@ -886,7 +890,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     val descent = height - ascent
 
     dom.document.body.removeChild(div)
-    new FontMetrics(ascent, height, descent)
+    FontMetrics(ascent, height, descent)
   }
 
 }

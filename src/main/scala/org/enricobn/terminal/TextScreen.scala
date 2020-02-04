@@ -8,14 +8,15 @@ trait TextScreen {
   val height: Int
   var scroll_region: ScrollRegion
   val cursor: Coords
-  def is_scrolling() : Boolean
+
+  def is_scrolling(): Boolean
 
   def get_coords_at_pixel(x: Int, y: Int): Coords
 
   // {from:{x,y}, to{x,y}}
   def set_selection(optionalSelection: Option[Selection])
 
-  def get_selected_text() : Option[String]
+  def get_selected_text(): Option[String]
 
   def scroll_back_page_up()
 
@@ -41,7 +42,7 @@ trait TextScreen {
 
   def set_default_bg_color()
 
-  def set_default_attributes() : Unit
+  def set_default_attributes(): Unit
 
   def set_fg_color(color: String)
 
@@ -110,4 +111,6 @@ trait TextScreen {
     * scroll_back true if it must get lines from scroll buffer
     */
   def up(count: Int, scroll_back: Boolean)
+
+  def setDefaultCellAttributes(cellAttributes: CellAttributes): Unit
 }

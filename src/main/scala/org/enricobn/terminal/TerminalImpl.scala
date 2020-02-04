@@ -27,6 +27,9 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
     else
       Some(new SoundEffect(soundResource))
 
+  screen.setDefaultCellAttributes(new CellAttributes(false, false, termColors.get(ColorEnum.white),
+    termColors.get(ColorEnum.black)))
+
   inputHandler.onKeyDown(new KeyDownPub#Sub() {
     override def notify(pub: mutable.Publisher[KeyDownEvent], event: KeyDownEvent) {
       val keyCode = event.keyCode
