@@ -4,7 +4,6 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.scalajs.js.annotation.{JSExport, JSExportAll}
 import Terminal._
-import org.enricobn.terminal.ColorEnum.ColorEnum
 
 /**
   * Created by enrico on 11/30/16.
@@ -579,16 +578,9 @@ object ColorEnum extends Enumeration {
 
 class TermColors {
 
-  private val colors = mutable.Map[ColorEnum.ColorEnum, String](
-    ColorEnum.black -> "black",
-    ColorEnum.red -> "red",
-    ColorEnum.green -> "green",
-    ColorEnum.yellow -> "yellow",
-    ColorEnum.blue -> "blue",
-    ColorEnum.magenta -> "magenta",
-    ColorEnum.cyan -> "cyan",
-    ColorEnum.white -> "white"
-  )
+  private val colors = mutable.Map[ColorEnum.ColorEnum, String]()
+
+  ColorEnum.values.foreach { color => colors.put(color, color.toString) }
 
   def get(color: ColorEnum.ColorEnum): String = colors(color)
 
