@@ -59,7 +59,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
 
   override var scroll_region = ScrollRegion(0, height - 1)
 
-  // TODO accesor method
+  // TODO accessor method
   override val cursor = Coords(0, 0)
 
   private val default_bg_color = dom.document.body.style.backgroundColor

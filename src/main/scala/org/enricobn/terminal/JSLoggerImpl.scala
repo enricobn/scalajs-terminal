@@ -7,6 +7,8 @@ import scala.scalajs.js.annotation.{JSExport, JSExportAll}
 /**
   * Created by enrico on 11/30/16.
   */
+@JSExport(name = "LogLevel")
+@JSExportAll
 object LogLevel extends Enumeration {
   val ERROR, WARN, INFO, DEBUG = Value
 }
