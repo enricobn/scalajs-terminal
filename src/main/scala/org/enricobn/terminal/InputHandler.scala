@@ -2,11 +2,11 @@ package org.enricobn.terminal
 
 trait InputHandler {
 
-  def onKeyDown(subscriber: KeyDownPub#Sub)
+  def onKeyDown(listener: KeyDownEvent => Unit): Unit
 
-  def onKeyPress(subscriber: KeyPressPub#Sub)
+  def onKeyPress(listener: Char => Unit): Unit
 
-  def removeKeyDown(subscriber: KeyDownPub#Sub)
+  def removeKeyDown(listener: KeyDownEvent => Unit): Unit
 
-  def removeKeyPress(subscriber: KeyPressPub#Sub)
+  def removeKeyPress(listener: Char => Unit): Unit
 }

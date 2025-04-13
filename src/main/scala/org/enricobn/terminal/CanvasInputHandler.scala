@@ -1,18 +1,19 @@
 package org.enricobn.terminal
 
 import org.scalajs.dom
-import org.scalajs.dom.html._
-import org.scalajs.dom.raw.HTMLElement
-import scala.scalajs.js.annotation.{JSExport, JSExportAll}
+import org.scalajs.dom.html.*
+
+import scala.scalajs.js.annotation.{JSExportAll, JSExportTopLevel}
 
 /**
   * Created by enrico on 12/6/16.
+  *
   * @param canvasId the id of the HTML canvas
   */
 @JSExportAll
-@JSExport(name = "CanvasInputHandler")
+@JSExportTopLevel(name = "CanvasInputHandler")
 class CanvasInputHandler(val canvasId: String) extends InputHandler {
-  private val canvas: HTMLElement = dom.document.getElementById(canvasId).asInstanceOf[Canvas]
+  private val canvas: dom.HTMLElement = dom.document.getElementById(canvasId).asInstanceOf[Canvas]
   private val keyDownPub = new KeyDownPub //.Publisher[] {}//new ListBuffer[Int =>()]
   private val keyPressPub = new KeyPressPub //new ListBuffer[Char =>()]
   /*
@@ -39,20 +40,20 @@ class CanvasInputHandler(val canvasId: String) extends InputHandler {
   // to let the canvas has focus
   canvas.tabIndex = 1000
 
-  override def onKeyDown(subscriber: KeyDownPub#Sub) {
+  override def onKeyDown(subscriber: KeyDownEvent => Unit): Unit = {
     keyDownPub.subscribe(subscriber)
   }
 
-  override def onKeyPress(subscriber: KeyPressPub#Sub) {
+  override def onKeyPress(subscriber: Char => Unit): Unit = {
     keyPressPub.subscribe(subscriber)
   }
 
-  override def removeKeyDown(subscriber: KeyDownPub#Sub) {
-    keyDownPub.removeSubscription(subscriber)
+  override def removeKeyDown(subscriber: KeyDownEvent => Unit): Unit = {
+    keyDownPub.remove(subscriber)
   }
 
-  override def removeKeyPress(subscriber: KeyPressPub#Sub) {
-    keyPressPub.removeSubscription(subscriber)
+  override def removeKeyPress(subscriber: Char => Unit): Unit = {
+    keyPressPub.remove(subscriber)
   }
 
 }

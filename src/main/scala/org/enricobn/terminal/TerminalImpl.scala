@@ -2,14 +2,14 @@ package org.enricobn.terminal
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.scalajs.js.annotation.{JSExport, JSExportAll}
-import Terminal._
+import scala.scalajs.js.annotation.{JSExport, JSExportAll, JSExportTopLevel}
+import Terminal.*
 
 /**
   * Created by enrico on 11/30/16.
   */
 
-@JSExport(name = "Terminal")
+@JSExportTopLevel(name = "Terminal")
 @JSExportAll
 class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val logger: JSLogger, val soundResource: String = null,
                    val termColors: TermColors = new TermColors) extends Terminal {
@@ -29,13 +29,10 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
   screen.setDefaultCellAttributes(new CellAttributes(false, false, termColors.get(ColorEnum.white),
     termColors.get(ColorEnum.black)))
 
-  inputHandler.onKeyDown(new KeyDownPub#Sub() {
-    override def notify(pub: mutable.Publisher[KeyDownEvent], event: KeyDownEvent) {
+  inputHandler.onKeyDown(event => {
       val keyCode = event.keyCode
       val ctrlKey = event.ctrlKey
-      if (keyCode == 9    // tab
-        || keyCode == 27  // ESC
-        || keyCode == 8   // backspace
+      if (keyCode == Terminal.TAB_CODE || keyCode == Terminal.ESC_CODE || keyCode == Terminal.BACKSPACE_CODE
       ) {
         inputPub.publish(fromCharCode(keyCode))
         event.preventDefault = true
@@ -145,32 +142,27 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
       //        inputPub.publish("\n")
       //        event.preventDefault = true
       //      }
-    }
   })
 
-  inputHandler.onKeyPress(new KeyPressPub#Sub() {
-    override def notify(pub: mutable.Publisher[Char], event: Char) {
+  inputHandler.onKeyPress(event =>  {
       if (soundEffect.isDefined) {
         soundEffect.get.play()
       }
       inputPub.publish(event.toString)
-    }
   })
 
-  override def onInput(subscriber: StringPub#Sub) {
+  def onInput(subscriber: String => Unit): Unit =
     inputPub.subscribe(subscriber)
-  }
 
-  override def removeOnInput(subscriber: StringPub#Sub) {
-    inputPub.removeSubscription(subscriber)
-  }
+  def removeOnInput(subscriber: String => Unit): Unit =
+    inputPub.remove(subscriber)
 
-  override def removeOnInputs() {
-    inputPub.removeSubscriptions()
+  override def removeOnInputs(): Unit = {
+    inputPub.removeAll()
   }
 
   // add string to cursor position
-  override def add(text: String) {
+  override def add(text: String): Unit = {
     /*    if (text.substr(0,3) == '&c:') {
             if (text.substr(3) == 'icrnl=true') {
                 this.icrnl = true;
@@ -557,7 +549,7 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
     screen.flush()
   }
 
-  override def flush() {
+  override def flush(): Unit = {
     screen.update()
   }
 

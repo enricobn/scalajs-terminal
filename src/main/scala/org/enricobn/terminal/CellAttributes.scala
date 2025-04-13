@@ -1,6 +1,6 @@
 package org.enricobn.terminal
 
-import org.scalajs.dom._
+import org.scalajs.dom.*
 
 /**
   * Created by enrico on 11/29/16.
@@ -9,7 +9,7 @@ import org.scalajs.dom._
 class CellAttributes(var bold: Boolean = false, var italic: Boolean = false, var fg_color: String = "white",
                      var bg_color: String = "black") {
 
-  def apply(ctx: CanvasRenderingContext2D, fontBase: String) {
+  def apply(ctx: CanvasRenderingContext2D, fontBase: String): Unit = {
     applyFont(ctx, fontBase)
     ctx.fillStyle = fg_color
   }
@@ -35,7 +35,7 @@ class CellAttributes(var bold: Boolean = false, var italic: Boolean = false, var
   /**
     * applies only changed attributes
     */
-  def apply_diff(ctx: CanvasRenderingContext2D, fontBase: String, actualAttributes: scala.Option[CellAttributes]) {
+  def apply_diff(ctx: CanvasRenderingContext2D, fontBase: String, actualAttributes: scala.Option[CellAttributes]): Unit = {
     if (actualAttributes.isDefined) {
       if (this.bold != actualAttributes.get.bold || this.italic != actualAttributes.get.italic) {
         applyFont(ctx, fontBase)

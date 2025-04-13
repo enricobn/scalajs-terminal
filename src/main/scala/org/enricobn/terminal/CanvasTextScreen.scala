@@ -1,21 +1,21 @@
 package org.enricobn.terminal
 
 import org.scalajs.dom
-import org.scalajs.dom._
-import org.scalajs.dom.html._
+import org.scalajs.dom.*
+import org.scalajs.dom.html.*
 
 import scala.collection.mutable.ArrayBuffer
-import scala.scalajs.js.annotation.{JSExport, JSExportAll}
+import scala.scalajs.js.annotation.{JSExport, JSExportAll, JSExportTopLevel}
 
 /**
   * Created by enrico on 11/29/16.
   * @param canvasId the id of the HTML canvas
   */
 @JSExportAll
-@JSExport(name = "CanvasTextScreen")
+@JSExportTopLevel(name = "CanvasTextScreen")
 class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends TextScreen {
   private var cell_attributes: scala.Option[CellAttributes] = None
-  private var selection: scala.Option[Selection] = None
+  private var selection: scala.Option[org.enricobn.terminal.Selection] = None
   private var updated = true
   private var selected_text: scala.Option[String] = None
   private var cells = new ArrayBuffer[String]()
@@ -57,10 +57,10 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
   // for cursor
   ctx.strokeStyle = default_cell_attributes.fg_color
 
-  override var scroll_region = ScrollRegion(0, height - 1)
+  override var scroll_region: ScrollRegion = ScrollRegion(0, height - 1)
 
   // TODO accessor method
-  override val cursor = Coords(0, 0)
+  override val cursor: Coords = Coords(0, 0)
 
   private val default_bg_color = dom.document.body.style.backgroundColor
 
@@ -100,7 +100,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
   //    canvas.getContext("2d").asInstanceOf[CanvasRenderingContext2D]
   //  }
 
-  private def initCellAttributes() {
+  private def initCellAttributes(): Unit = {
     cells_attributes.clear()
 
     for (y <- 0 to height) {
@@ -120,7 +120,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
   }
 
   // {from:{x,y}, to{x,y}}
-  override def set_selection(optionalSelection: scala.Option[Selection]) {
+  override def set_selection(optionalSelection: scala.Option[org.enricobn.terminal.Selection]): Unit = {
     this.selection = optionalSelection
     this.updated = false
 
@@ -139,7 +139,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
             if (y == newSelection.to.y) {
               to_x = newSelection.to.x
             }
-            if (selected_text.length > 0) {
+            if (selected_text.nonEmpty) {
               selected_text += '\n'
             }
             if (scrolling) {
@@ -155,7 +155,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
             }
           }
         }
-        if (selected_text.length == 0) {
+        if (selected_text.isEmpty) {
           this.selected_text = None
           //        } else {
           //            log('selected text="' + this.selected_text + '"', WARN);
@@ -179,7 +179,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     scroll_back_down(this.height)
 
 
-  override def scroll_back_up(lines: Int) {
+  override def scroll_back_up(lines: Int): Unit = {
     var real_scroll = lines
 
     scroll_back_line -= lines
@@ -203,7 +203,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     updated = false
   }
 
-  override def scroll_back_down(lines: Int) {
+  override def scroll_back_down(lines: Int): Unit = {
     var real_scroll = lines
     scroll_back_line += lines
 
@@ -225,13 +225,13 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     updated = false
   }
 
-  override def reset_scrolling() {
+  override def reset_scrolling(): Unit = {
     flush()
     scrolling = false
     scroll_back_line = scroll_back_buffer.length
   }
 
-  override def update() {
+  override def update(): Unit = {
     if (!updated) {
       //        this.canvas.width = this.canvas.width;
       ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -283,8 +283,8 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     }
   }
 
-  override def flush() {
-    if (chars_buffer.length == 0) {
+  override def flush(): Unit = {
+    if (chars_buffer.isEmpty) {
       return
     }
     var buffer = this.chars_buffer
@@ -318,7 +318,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     }
   }
 
-  override def set_normal() {
+  override def set_normal(): Unit = {
     if (!colors) {
       return
     }
@@ -327,7 +327,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     cell_attributes.get.bold = false
   }
 
-  override def set_bold() {
+  override def set_bold(): Unit = {
     if (!colors) {
       return
     }
@@ -336,7 +336,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     cell_attributes.get.bold = true
   }
 
-  override def set_default_fg_color() {
+  override def set_default_fg_color(): Unit = {
     if (!colors) {
       return
     }
@@ -345,7 +345,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     cell_attributes.get.fg_color = default_cell_attributes.fg_color
   }
 
-  override def set_default_bg_color() {
+  override def set_default_bg_color(): Unit = {
     if (!colors) {
       return
     }
@@ -354,12 +354,12 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     this.cell_attributes.get.bg_color = default_cell_attributes.bg_color
   }
 
-  override def set_default_attributes() {
+  override def set_default_attributes(): Unit = {
     flush()
     cell_attributes = None
   }
 
-  override def set_fg_color(color: String) {
+  override def set_fg_color(color: String): Unit = {
     if (!colors) {
       return
     }
@@ -368,7 +368,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     cell_attributes.get.fg_color = color
   }
 
-  override def set_bg_color(color: String) {
+  override def set_bg_color(color: String): Unit = {
     if (!colors) {
       return
     }
@@ -378,7 +378,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
   }
 
   // add char to cursor position and increment cursor
-  override def add_char(c: Char) {
+  override def add_char(c: Char): Unit = {
     if (!equals_attributes(cell_attributes, ctx_cell_attributes)) {
       flush()
     }
@@ -393,7 +393,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     x >=0 && x <= width && y >=0 && y < height
 
 
-  override def apply_cell_attributes(context: CanvasRenderingContext2D, attributes: scala.Option[CellAttributes]) {
+  override def apply_cell_attributes(context: CanvasRenderingContext2D, attributes: scala.Option[CellAttributes]): Unit = {
     flush()
 
     if (!equals_attributes(attributes, ctx_cell_attributes)) {
@@ -407,7 +407,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
   }
 
   // set the char in cursor position, without affecting the cursor position
-  override def set_char(c: Char, attributes: scala.Option[CellAttributes]) {
+  override def set_char(c: Char, attributes: scala.Option[CellAttributes]): Unit = {
     flush()
     // if a char is written outside the window I go to the next line, it happens within vim and bash itself
     if (cursor.x >= width) {
@@ -436,13 +436,13 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     }
   }
 
-  override def tab() {
+  override def tab(): Unit = {
     flush()
     set_cursor(cursor.x - cursor.x % 8 + 8, cursor.y)
   }
 
   // delete char in cursor position
-  override def delete_chars(count: Int) {
+  override def delete_chars(count: Int): Unit = {
     flush()
     var cursor_x = cursor.x
     var cursor_y = cursor.y
@@ -468,19 +468,19 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     set_cursor(cursor_x, cursor_y)
   }
 
-  override def redraw(context: CanvasRenderingContext2D) {
+  override def redraw(context: CanvasRenderingContext2D): Unit = {
     flush()
     updated = false
   }
 
-  override def draw(context: CanvasRenderingContext2D) {
+  override def draw(context: CanvasRenderingContext2D): Unit = {
     flush()
     for (y <- 0 until height) {
       draw_line(context, y)
     }
   }
 
-  override def insert_lines(count: Int) {
+  override def insert_lines(count: Int): Unit = {
     flush()
     val scroll_region = ScrollRegion(this.scroll_region.first, this.scroll_region.last)
 
@@ -489,7 +489,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     this.scroll_region = scroll_region
   }
 
-  override def delete_lines(count: Int) {
+  override def delete_lines(count: Int): Unit = {
     flush()
     val scroll_region = ScrollRegion(this.scroll_region.first, this.scroll_region.last)
 
@@ -498,7 +498,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     this.scroll_region = scroll_region
   }
 
-  override def redraw_line(context: CanvasRenderingContext2D, line: Int) {
+  override def redraw_line(context: CanvasRenderingContext2D, line: Int): Unit = {
     flush()
     context.clearRect(0, line * cell_height.height, canvas.width, (line + 1) * cell_height.height)
     draw_line(context, line)
@@ -518,7 +518,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     }
   }
 
-  override def draw_line(context: CanvasRenderingContext2D, line: Int) {
+  override def draw_line(context: CanvasRenderingContext2D, line: Int): Unit = {
     flush()
     if (colors) {
       // I try to optimize, rendering text in chunks of equal attributes
@@ -544,7 +544,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     }
   }
 
-  override def insert_chars(count: Int) {
+  override def insert_chars(count: Int): Unit = {
     flush()
     var s = ""
     if (cursor.x > 0) {
@@ -571,7 +571,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
   /**
     * scroll_back true if it must put the scrolled region to the scroll buffer
     */
-  override def scroll_up(count: Int, scroll_back: Boolean) {
+  override def scroll_up(count: Int, scroll_back: Boolean): Unit = {
     flush()
 
     if (selection.isDefined) {
@@ -640,7 +640,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
   /**
     * scroll_back true if it must get lines from scroll buffer
     */
-  override def scroll_down(count: Int, scroll_back: Boolean) {
+  override def scroll_down(count: Int, scroll_back: Boolean): Unit = {
     flush()
 
     if (selection.isDefined) {
@@ -711,7 +711,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     this.cursor_visible = cursor_visible
   }
 
-  override def hide_cursor() {
+  override def hide_cursor(): Unit = {
     if (cursor_visible) {
       flush()
       if (cursor.x <= width) {
@@ -721,7 +721,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     }
   }
 
-  override def show_cursor() {
+  override def show_cursor(): Unit = {
     if (!cursor_visible) {
       flush()
       if (cursor.x <= width) {
@@ -731,7 +731,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     }
   }
 
-  override def set_cursor(_x: Int, _y: Int) {
+  override def set_cursor(_x: Int, _y: Int): Unit = {
     flush()
 
     var x = _x
@@ -767,23 +767,23 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
 
   }
 
-  override def cursor_right() {
+  override def cursor_right(): Unit = {
     flush()
     set_cursor(cursor.x + 1, cursor.y)
   }
 
-  override def carriage_return() {
+  override def carriage_return(): Unit = {
     flush()
     set_cursor(0, cursor.y)
   }
 
-  override def line_feed() {
+  override def line_feed(): Unit = {
     flush()
     // TODO I don't know if it's correct to got tho first column
     set_cursor(0, cursor.y + 1)
   }
 
-  override def clear(reset_cursor: Boolean) {
+  override def clear(reset_cursor: Boolean): Unit = {
     // TODO it's a trick to clear selection when running a program which clears the screen (vim, less, etc.)
     set_selection(None)
 
@@ -813,7 +813,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     }
   }
 
-  override def erase_line_from_cursor() {
+  override def erase_line_from_cursor(): Unit = {
     flush()
     // TODO optimize with substr
     var s = ""
@@ -831,7 +831,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
 
   }
 
-  override def backspace() {
+  override def backspace(): Unit = {
     flush()
     if (cursor.x > 0) {
       set_cursor(cursor.x - 1, cursor.y)
@@ -844,7 +844,7 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
   /**
     * scroll_back true if it must get lines from scroll buffer
     */
-  override def up(count: Int, scroll_back: Boolean) {
+  override def up(count: Int, scroll_back: Boolean): Unit = {
     flush()
     // TODO optimize without a loop
     for (i <- 0 until count) {

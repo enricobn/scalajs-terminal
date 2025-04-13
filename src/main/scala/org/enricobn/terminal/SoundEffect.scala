@@ -1,7 +1,7 @@
 package org.enricobn.terminal
 
-import org.scalajs.dom._
-import org.scalajs.dom.raw.{Event, XMLHttpRequest}
+import org.scalajs.dom
+import org.scalajs.dom.*
 
 import scala.scalajs.js.typedarray.ArrayBuffer
 
@@ -14,9 +14,9 @@ import scala.scalajs.js.typedarray.ArrayBuffer
 class SoundEffect(resourcePath: String) {
   private lazy val audioContext = new AudioContext
 
-  private var audioBuffer: AudioBuffer = null
+  private var audioBuffer: AudioBuffer = _
 
-  private val request = new XMLHttpRequest
+  private val request = new dom.XMLHttpRequest
   //val urlToMp3File = "typewriter-key-1.wav" // "http://sciss.de/noises2/staircase.mp3"
   request.open("GET", url = resourcePath, async = true)
   request.responseType = "arraybuffer"
@@ -24,7 +24,7 @@ class SoundEffect(resourcePath: String) {
   request.onload = onLoad _
   request.send()
 
-  private def onLoad(e: Event): Unit = {
+  private def onLoad(e: dom.Event): Unit = {
     val audioData = request.response.asInstanceOf[ArrayBuffer]  // ja?!
 
     def gotBuffer(buffer: AudioBuffer): Unit = {
@@ -36,7 +36,7 @@ class SoundEffect(resourcePath: String) {
     // promiseBuffer.andThen(gotBuffer _)
   }
 
-  def play() {
+  def play(): Unit = {
     val n = audioContext.createBufferSource()
     n.buffer = audioBuffer
     n.connect(audioContext.destination)
