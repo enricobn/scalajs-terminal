@@ -4,7 +4,7 @@ val ver = "1.0.0"
 
 lazy val root = (project in file("."))
   .settings(
-    scalaVersion := "2.13.16",
+    scalaVersion := "3.6.4",
     organization := "org.enricobn",
     name := "scalajs-terminal",
     version := ver,
@@ -17,6 +17,5 @@ lazy val root = (project in file("."))
   .enablePlugins(ScalaJSPlugin)
 
 scalacOptions ++= Seq(
-  "-Xsource:3",
   "-deprecation"
 )

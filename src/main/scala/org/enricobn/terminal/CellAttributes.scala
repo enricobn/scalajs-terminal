@@ -53,7 +53,7 @@ class CellAttributes(var bold: Boolean = false, var italic: Boolean = false, var
 
   override def equals(other: Any): Boolean = other match {
     case that: CellAttributes =>
-      (that canEqual this) &&
+      that.canEqual(this) &&
         bold == that.bold &&
         italic == that.italic &&
         fg_color == that.fg_color &&

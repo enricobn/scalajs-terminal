@@ -5,6 +5,7 @@ import org.scalajs.dom.*
 import org.scalajs.dom.html.*
 
 import scala.collection.mutable.ArrayBuffer
+import scala.compiletime.uninitialized
 import scala.scalajs.js.annotation.{JSExport, JSExportAll, JSExportTopLevel}
 
 /**
@@ -19,6 +20,8 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
   private var updated = true
   private var selected_text: scala.Option[String] = None
   private var cells = new ArrayBuffer[String]()
+  private var wrap_around = false
+  private var scroll_region: ScrollRegion = uninitialized
 
   private var default_cell_attributes = new CellAttributes(false, false, "white")
 
@@ -29,12 +32,13 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
   // I must apply attributes (font basically) to calculate font size
   default_cell_attributes.apply(ctx, font_base)
 
-  override var wrap_around = false
   private val cell_width = ctx.measureText("M").width
   private val cell_height = getFontHeight("Courier New", "16px", "Mg")
 
   override val width: Int = (canvas.width / cell_width).toInt
   override val height: Int = canvas.height / cell_height.height
+
+  scroll_region = ScrollRegion(0, height - 1)
 
   private val cells_attributes = new ArrayBuffer[ArrayBuffer[scala.Option[CellAttributes]]]()
 
@@ -56,8 +60,6 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
 
   // for cursor
   ctx.strokeStyle = default_cell_attributes.fg_color
-
-  override var scroll_region: ScrollRegion = ScrollRegion(0, height - 1)
 
   // TODO accessor method
   override val cursor: Coords = Coords(0, 0)
@@ -893,5 +895,8 @@ class CanvasTextScreen(val canvasId: String, val logger: JSLoggerImpl) extends T
     FontMetrics(ascent, height, descent)
   }
 
+  override def set_wrap_around(wrap_around: Boolean): Unit = this.wrap_around = wrap_around
+
+  override def set_scroll_region(scroll_region: ScrollRegion): Unit = this.scroll_region = scroll_region
 }
 

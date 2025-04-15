@@ -3,8 +3,8 @@ package org.enricobn.terminal
 import org.scalajs.dom
 import org.scalajs.dom.*
 
+import scala.compiletime.uninitialized
 import scala.scalajs.js.typedarray.ArrayBuffer
-
 
 /**
   * Created by enrico on 12/7/16.
@@ -14,27 +14,23 @@ import scala.scalajs.js.typedarray.ArrayBuffer
 class SoundEffect(resourcePath: String) {
   private lazy val audioContext = new AudioContext
 
-  private var audioBuffer: AudioBuffer = _
+  private var audioBuffer: AudioBuffer = uninitialized
 
   private val request = new dom.XMLHttpRequest
   //val urlToMp3File = "typewriter-key-1.wav" // "http://sciss.de/noises2/staircase.mp3"
   request.open("GET", url = resourcePath, async = true)
   request.responseType = "arraybuffer"
 
-  request.onload = onLoad _
-  request.send()
-
-  private def onLoad(e: dom.Event): Unit = {
+  request.onload = (e: dom.Event) => {
     val audioData = request.response.asInstanceOf[ArrayBuffer]  // ja?!
 
-    def gotBuffer(buffer: AudioBuffer): Unit = {
+    /* val promiseBuffer = */ audioContext.decodeAudioData(audioData, (buffer: AudioBuffer) => {
       audioBuffer = buffer
-    }
-
-    /* val promiseBuffer = */ audioContext.decodeAudioData(audioData, gotBuffer _)
+    })
 
     // promiseBuffer.andThen(gotBuffer _)
   }
+  request.send()
 
   def play(): Unit = {
     val n = audioContext.createBufferSource()

@@ -3,11 +3,13 @@ import org.scalajs.dom.CanvasRenderingContext2D
 
 trait TextScreen {
 
-  var wrap_around: Boolean
   val width: Int
   val height: Int
-  var scroll_region: ScrollRegion
   val cursor: Coords
+
+  def set_wrap_around(wrap_around: Boolean) : Unit
+
+  def set_scroll_region(scroll_region: ScrollRegion) : Unit
 
   def is_scrolling(): Boolean
 

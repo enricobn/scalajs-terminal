@@ -2,7 +2,7 @@ package org.enricobn.terminal
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.scalajs.js.annotation.{JSExport, JSExportAll, JSExportTopLevel}
+import scala.scalajs.js.annotation.{JSExportAll, JSExportTopLevel}
 import Terminal.*
 
 /**
@@ -305,7 +305,7 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
                 app_mode = true
                 logger.log("CSI ?1h", LogLevel.INFO)
               } else if (csi_parameters(1) == "7") {
-                screen.wrap_around = true
+                screen.set_wrap_around(true)
                 logger.log("CSI ?7h", LogLevel.INFO)
               } else if (csi_parameters(1) == "25") {
                 screen.show_cursor()
@@ -326,7 +326,7 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
                 app_mode = false
                 logger.log("CSI ?1l", LogLevel.INFO)
               } else if (csi_parameters(1) == "7") {
-                screen.wrap_around = false
+                screen.set_wrap_around(false)
                 logger.log("CSI ?7l", LogLevel.INFO)
               } else if (csi_parameters(1) == "25") {
                 screen.hide_cursor()
@@ -374,10 +374,10 @@ class TerminalImpl(val screen: TextScreen, val inputHandler: InputHandler, val l
               // scroll region
             } else {
               if (csi_parameters.isEmpty) {
-                screen.scroll_region = ScrollRegion(0, screen.height -1)
+                screen.set_scroll_region(ScrollRegion(0, screen.height -1))
               } else {
-                screen.scroll_region = ScrollRegion(csi_parameters(0).toInt -1,
-                  csi_parameters(1).toInt -1)
+                screen.set_scroll_region(ScrollRegion(csi_parameters(0).toInt -1,
+                  csi_parameters(1).toInt -1))
               }
               if (logger.isLoggable(LogLevel.INFO)) {
                 logger.log("CSI " + csi_parameters + c, LogLevel.INFO)
